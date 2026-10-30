@@ -6,10 +6,12 @@
 A local Grafana dashboard for Claude Code's OpenTelemetry data: cost and tokens, productivity, API and tool performance, subagents, hooks, context compaction, **full trace waterfalls**, and (optionally) your subscription limits. One command to install, everything stays on your machine.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-![Runs on](https://img.shields.io/badge/runs%20on-Podman%20%2B%20systemd-8A2BE2)
+![Runs on](https://img.shields.io/badge/runs%20on-Podman%20%2B%20systemd%20or%20Docker-8A2BE2)
 ![Localhost only](https://img.shields.io/badge/network-localhost%20only-2ea44f)
 [![Stars](https://img.shields.io/github/stars/moverhorst-pitcrew/claude-code-grafana?style=flat)](https://github.com/moverhorst-pitcrew/claude-code-grafana/stargazers)
 [![Last commit](https://img.shields.io/github/last-commit/moverhorst-pitcrew/claude-code-grafana)](https://github.com/moverhorst-pitcrew/claude-code-grafana/commits/main)
+[![CI](https://github.com/moverhorst-pitcrew/claude-code-grafana/actions/workflows/ci.yml/badge.svg)](https://github.com/moverhorst-pitcrew/claude-code-grafana/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/moverhorst-pitcrew/claude-code-grafana)](https://github.com/moverhorst-pitcrew/claude-code-grafana/releases/latest)
 
 <img src="docs/screenshots/01-health-and-subscription.jpg" alt="Health tiles and subscription limits" width="900">
 
@@ -32,6 +34,7 @@ A local Grafana dashboard for Claude Code's OpenTelemetry data: cost and tokens,
 ## Quick start
 
 You need Linux with systemd, [Podman](https://podman.io/) 4.4 or newer, `curl` and `python3`. On Debian or Ubuntu: `sudo apt-get install -y podman curl python3`.
+On macOS, Windows or without systemd, use [Docker Compose](#docker-compose) instead.
 
 ```bash
 git clone https://github.com/moverhorst-pitcrew/claude-code-grafana.git
@@ -109,7 +112,7 @@ Please read this first:
 - It reads your Claude Code login from `~/.claude/.credentials.json` (or `$CLAUDE_CONFIG_DIR`) and calls `https://api.anthropic.com/api/oauth/usage`, an **undocumented endpoint** that may change or be restricted at any time.
 - The access token is used in memory for that single request. It is never printed, logged or stored, and the poller never refreshes it (that would log Claude Code out). The code is short: [`usage-poller/poll_usage.py`](usage-poller/poll_usage.py).
 - It polls at most every 4 minutes (`CLAUDE_USAGE_MIN_INTERVAL`). The endpoint answers HTTP 429 with `Retry-After: 0`, so after a 429 it backs off exponentially (2, 4, 8 minutes, capped at 10) until a poll succeeds. The "Usage data age" tile shows how fresh the data is.
-- It only works where the login is a file (Linux). macOS Keychain and Windows storage are not supported.
+- It only works where Claude Code keeps the login in `.credentials.json` (Linux and Windows). The macOS Keychain is not supported, so the subscription tiles stay empty there.
 - Dry run without sending anything: `python3 usage-poller/poll_usage.py --dry-run`.
 
 You get 5-hour and weekly usage, reset countdowns, per-model weekly limits, usage by product, usage credits, and a **pace** tile: used so far divided by the part of the window already gone. Orange from 85%, red above 100% means you would hit the limit before it resets.
@@ -155,21 +158,22 @@ The validator queries Grafana anonymously; set `GRAFANA_PASSWORD` if anonymous v
 
 Names, colours and empty states are set in one block near the end of the script, so a new label never means touching a query: `RENAMES` and `CELL_MAPS` (Grafana's *rename by regex* transformation and value mappings), `MODEL_COLORS`, `STAT_STEPS` (the colour lines) and `EMPTY_IS_GOOD`.
 
-## Without systemd (plain container)
+## Docker Compose
 
-On macOS, or where you cannot use systemd, run the container yourself (Docker or Podman; Grafana must stay on localhost):
+On macOS, Windows, or anywhere without systemd, use the compose file (Grafana stays on localhost):
 
 ```bash
-docker run -d --name otel-lgtm --restart unless-stopped \
-  -p 127.0.0.1:3000:3000 -p 127.0.0.1:4317:4317 -p 127.0.0.1:4318:4318 \
-  -e GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/claude-dashboards/claude-code.json \
-  -v "$HOME/.local/share/otel-lgtm:/data" \
-  -v "$PWD/provisioning/grafana-dashboards.yaml:/otel-lgtm/grafana/conf/provisioning/dashboards/grafana-dashboards.yaml:ro" \
-  -v "$PWD/dashboards:/claude-dashboards:ro" \
-  docker.io/grafana/otel-lgtm:0.39.0
-python3 claude/apply-claude-settings.py        # point Claude Code at it
-# also sets OTEL_RESOURCE_ATTRIBUTES=host.name=<hostname>; override with CLAUDE_HOST_NAME=laptop python3 claude/apply-claude-settings.py
+docker compose up -d                          # Grafana, Loki, Tempo, Prometheus and the collector
+docker compose --profile usage-poller up -d   # optional: also the subscription usage poller
+python3 claude-settings/apply-claude-settings.py   # point Claude Code at it, then start a new session
+# the script also sets OTEL_RESOURCE_ATTRIBUTES=host.name=<hostname>; override with CLAUDE_HOST_NAME=laptop
 ```
+
+For Claude Code running in a container, put the variables from [`claude-settings/claude-telemetry-env.json`](claude-settings/claude-telemetry-env.json) in its `settings.json` `env` block, with the endpoint pointing at this stack and its own `host.name`.
+
+## Using your own Grafana
+
+Import [`dashboards/claude-code.json`](dashboards/claude-code.json) (also attached to every [release](https://github.com/moverhorst-pitcrew/claude-code-grafana/releases)) under *Dashboards > New > Import*. You need a Prometheus, a Loki and a Tempo datasource that receive Claude Code's OTLP data, for example through the OpenTelemetry Collector. The dashboard picks the first datasource of each type; change `ds_prometheus`, `ds_loki` and `ds_tempo` under *Dashboard settings > Variables* if you have several.
 
 ## Operating it
 
@@ -180,19 +184,19 @@ journalctl --user -u otel-lgtm.service -f       # logs
 ./install.sh --uninstall                        # removes the services, keeps your data
 ```
 
-Data lives in `~/.local/share/otel-lgtm`; delete that folder to wipe all stored telemetry. `python3 claude/apply-claude-settings.py --remove` takes the variables out of Claude Code's settings again.
+Data lives in `~/.local/share/otel-lgtm` (`docker compose down -v` for the compose install); delete it to wipe all stored telemetry. `python3 claude-settings/apply-claude-settings.py --remove` takes the variables out of Claude Code's settings again.
 
 ## Troubleshooting
 
 | Symptom | Cause and fix |
 |---|---|
 | Dashboard is empty | Claude Code reads its settings at startup. Start a **new** session after `--claude-settings`. |
-| Logs and traces arrive but metrics do not | Claude Code sends *delta* metrics by default and Prometheus rejects them. `OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE=cumulative` (already in `claude/claude-telemetry-env.json`) fixes it. |
+| Logs and traces arrive but metrics do not | Claude Code sends *delta* metrics by default and Prometheus rejects them. `OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE=cumulative` (already in `claude-settings/claude-telemetry-env.json`) fixes it. |
 | No traces | Traces use `CLAUDE_CODE_ENHANCED_TELEMETRY_BETA=1`, which is undocumented and may be unavailable on some versions or accounts. Metrics and logs work without it. |
 | Stack does not start at boot | Lingering is off: run `sudo loginctl enable-linger $USER`. |
 | "Port already in use" | Something else uses 3000, 4317 or 4318 on localhost. Free it and re-run `./install.sh`. |
 | Tiles fail or totals look short on long ranges | Loki rejects queries over 30 days, and `otel-lgtm` keeps 15 days of metrics by default, so cost and token totals cover at most that. |
-| One host's data is missing from a Host filter | The Host variable uses the `host.name` resource attribute. Run `claude/apply-claude-settings.py` on that machine (or set `OTEL_RESOURCE_ATTRIBUTES=host.name=<name>` for Claude Code in a container). Data from before that has no host and only shows under *All*. |
+| One host's data is missing from a Host filter | The Host variable uses the `host.name` resource attribute. Run `claude-settings/apply-claude-settings.py` on that machine (or set `OTEL_RESOURCE_ATTRIBUTES=host.name=<name>` for Claude Code in a container). Data from before that has no host and only shows under *All*. |
 | "Usage data age" is orange or red | The poller is rate limited (HTTP 429) or your login token expired. It recovers once Claude Code has refreshed the token, which any use does. |
 
 ## Privacy and security
@@ -206,18 +210,26 @@ Data lives in `~/.local/share/otel-lgtm`; delete that folder to wipe all stored 
 
 | Path | Purpose |
 |---|---|
-| `install.sh` | Installs and uninstalls everything (`--help` lists the options) |
+| `install.sh` | Installs and uninstalls the Podman + systemd setup (`--help` lists the options) |
+| `docker-compose.yml` | The Docker alternative, with the usage poller as an opt-in profile |
 | `dashboards/claude-code.json` | The generated dashboard |
 | `tools/gen_dashboard.py` | **Source of truth** for the dashboard |
 | `tools/validate_dashboard.py` | Runs every dashboard query at a chosen range |
-| `quadlet/`, `provisioning/` | Podman service template and Grafana provisioning |
-| `claude/` | The Claude Code environment variables and the script that merges them into `settings.json` |
+| `provisioning/`, `quadlet/` | Grafana dashboard provisioning, and the Podman service template |
+| `claude-settings/` | The Claude Code environment variables and the script that merges them into `settings.json` |
 | `usage-poller/` | The optional subscription usage poller and its systemd units |
-| `docs/screenshots/` | Images used in this README |
+| `tests/` | Unit tests (`python3 -m unittest discover -s tests -t .`) |
+| `docs/` | [Telemetry reference](docs/telemetry-reference.md), [FAQ](docs/faq.md), [upgrade notes](docs/upgrading.md) and the screenshots used here |
+| `.github/` | CI, issue and pull request templates, and the contributing, security and conduct documents |
+| `CHANGELOG.md` | What changed in each release |
 
 ## Compatibility
 
 Tested with Claude Code 2.1.314, `grafana/otel-lgtm` 0.39.0 (Grafana 13.3), Podman 5.7 and Ubuntu 26.04. Other Claude Code versions may rename metrics, events or fields. Issues and pull requests are welcome, especially reports from other versions or distributions.
+
+## Contributing
+
+Issues, ideas and pull requests are welcome; see [CONTRIBUTING](.github/CONTRIBUTING.md). Questions and "how do you use it" belong in [Discussions](https://github.com/moverhorst-pitcrew/claude-code-grafana/discussions). Security problems: [SECURITY](.github/SECURITY.md).
 
 ## License
 
