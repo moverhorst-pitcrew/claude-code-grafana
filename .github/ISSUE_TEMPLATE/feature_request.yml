@@ -1,0 +1,15 @@
+name: Feature request
+description: A panel, metric or install option you would like
+labels: [enhancement]
+body:
+  - type: textarea
+    id: want
+    attributes:
+      label: What would you like to see
+      description: The question you want the dashboard to answer.
+    validations: { required: true }
+  - type: textarea
+    id: data
+    attributes:
+      label: Which telemetry would it use
+      description: Metric or event names, if you know them.

@@ -1,0 +1,24 @@
+name: Bug report
+description: Something is wrong, missing or empty in the dashboard, installer or poller
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you saw, and what you expected. A screenshot of the panel helps (hide account details).
+    validations: { required: true }
+  - type: input
+    id: claude-version
+    attributes: { label: Claude Code version, description: Output of `claude --version` }
+  - type: dropdown
+    id: runtime
+    attributes:
+      label: How you run the stack
+      options: [Podman + systemd (install.sh), Docker or Docker Compose, Other]
+  - type: textarea
+    id: query
+    attributes:
+      label: Panel and query
+      description: The panel title, and the result of `python3 tools/validate_dashboard.py` if a query fails.
+      render: shell
