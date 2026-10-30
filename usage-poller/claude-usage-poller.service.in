@@ -1,0 +1,13 @@
+[Unit]
+Description=Push Claude subscription usage to the local OTLP endpoint
+After=otel-lgtm.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/env python3 @SETUP_DIR@/usage-poller/poll_usage.py
+TimeoutStartSec=30
+NoNewPrivileges=yes
+StateDirectory=claude-usage-poller
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=read-only

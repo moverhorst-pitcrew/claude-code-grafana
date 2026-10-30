@@ -1,0 +1,13 @@
+apiVersion: 1
+
+# Replaces grafana/otel-lgtm's default provisioning (JVM + RED sample dashboards).
+# The only dashboard is the generated Claude Code one, mounted at /claude-dashboards.
+providers:
+  - name: "Claude Code"
+    type: file
+    disableDeletion: false
+    allowUiUpdates: true
+    updateIntervalSeconds: 30
+    options:
+      path: /claude-dashboards
+      foldersFromFilesStructure: false

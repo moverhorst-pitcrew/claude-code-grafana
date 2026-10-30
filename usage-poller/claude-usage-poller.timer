@@ -1,0 +1,10 @@
+[Unit]
+Description=Poll Claude subscription usage every 4 minutes
+
+[Timer]
+OnBootSec=45s
+OnUnitActiveSec=240s
+AccuracySec=5s
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,32 @@
+# Podman Quadlet unit (rootless, systemd --user). install.sh fills in @SETUP_DIR@ and copies it to
+# ~/.config/containers/systemd/otel-lgtm.container, from which systemd generates otel-lgtm.service.
+[Unit]
+Description=Grafana LGTM stack (Grafana, Tempo, Loki, Prometheus) for Claude Code telemetry
+Wants=network-online.target
+After=network-online.target
+
+[Container]
+ContainerName=otel-lgtm
+# Tested with otel-lgtm 0.38.1 (sha256:83c5fa20f19e4d6c39903c59330fa7a1a4d1f7c14aea9dc932787d97e711a06a).
+# To pin exactly, replace the next line with: Image=docker.io/grafana/otel-lgtm@sha256:83c5fa20f19e4d6c39903c59330fa7a1a4d1f7c14aea9dc932787d97e711a06a
+Image=docker.io/grafana/otel-lgtm:latest
+# Localhost only: nothing here is reachable from the network.
+PublishPort=127.0.0.1:3000:3000
+PublishPort=127.0.0.1:4317:4317
+PublishPort=127.0.0.1:4318:4318
+# Make the Claude Code dashboard the home page.
+Environment=GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/claude-dashboards/claude-code.json
+# Persistent data (Grafana users and password, metrics, logs, traces).
+Volume=%h/.local/share/otel-lgtm:/data:Z
+# Replace the image's sample dashboards with only ours, and load our dashboard.
+Volume=@SETUP_DIR@/provisioning/grafana-dashboards.yaml:/otel-lgtm/grafana/conf/provisioning/dashboards/grafana-dashboards.yaml:ro,Z
+Volume=@SETUP_DIR@/dashboards:/claude-dashboards:ro,Z
+
+[Service]
+ExecStartPre=/usr/bin/mkdir -p %h/.local/share/otel-lgtm
+Restart=always
+RestartSec=5
+TimeoutStartSec=600
+
+[Install]
+WantedBy=default.target
