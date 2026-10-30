@@ -56,7 +56,7 @@ def set_backoff(retry_after):
     Back off exponentially (2, 4, 8 ... up to 10 min) on consecutive 429s, honouring a longer Retry-After.
     The cap stays under the 15 min last_over_time window the dashboard uses, so its tiles do not go empty."""
     fails = _state().get("fails", 0) + 1
-    wait = min(max(retry_after, 60 * 2 ** (fails - 1)), 600)
+    wait = min(max(retry_after, 120 * 2 ** (fails - 1)), 600)
     _save(now + wait, fails)
     return wait
 
