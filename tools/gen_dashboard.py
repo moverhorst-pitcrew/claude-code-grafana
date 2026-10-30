@@ -123,7 +123,7 @@ def ts(title, items, unit, x, y, w=12, h=8, ds=PROM, desc="", stack=False, bars=
     unit, dec = norm(unit)
     if locals().get("is_rate_count"):
         dec = 1   # rates: one decimal ("60.0"), never a 3-digit fraction
-    dflt = {"unit": unit, "custom": custom, "noValue": "no data yet", "min": 0}
+    dflt = {"unit": unit, "custom": custom, "noValue": "none in this range", "min": 0}
     if dec is not None:
         dflt["decimals"] = dec
     if ymax is not None:
@@ -140,7 +140,7 @@ def ts(title, items, unit, x, y, w=12, h=8, ds=PROM, desc="", stack=False, bars=
 def bargauge(title, expr, unit, x, y, w=6, h=7, ds=PROM, desc="", legend="", colors="palette-classic"):
     p = base("bargauge", title, x, y, w, h, ds, targets(ds, [(expr, legend)], instant=True), desc)
     unit, dec = norm(unit)
-    bd = {"unit": unit, "color": {"mode": "fixed", "fixedColor": "blue"}, "noValue": "no data yet", "min": 0}
+    bd = {"unit": unit, "color": {"mode": "fixed", "fixedColor": "blue"}, "noValue": "none in this range", "min": 0}
     if legend:   # name from label values; a single series otherwise loses its name
         bd["displayName"] = legend.replace("{{", "${__field.labels.").replace("}}", "}")
     if dec is not None:
@@ -157,7 +157,7 @@ def bargauge(title, expr, unit, x, y, w=6, h=7, ds=PROM, desc="", legend="", col
 
 def table(title, ds, expr, x, y, w=12, h=8, desc="", rename=None, order=None, hide=None, overrides=None):
     p = base("table", title, x, y, w, h, ds, targets(ds, [expr], instant=True, fmt="table"), desc)
-    p["fieldConfig"] = {"defaults": {"custom": {"align": "auto", "cellOptions": {"type": "auto"}}, "noValue": "no data yet"},
+    p["fieldConfig"] = {"defaults": {"custom": {"align": "auto", "cellOptions": {"type": "auto"}}, "noValue": "none in this range"},
                         "overrides": overrides or []}
     p["options"] = {"showHeader": True, "cellHeight": "sm"}
     p["transformations"] = [{"id": "organize", "options": {
@@ -185,7 +185,7 @@ def count_table(title, expr, cols, x, y, w, h, desc=""):
 def tempo_table(title, query, x, y, w, h, table_type, desc="", rename=None, order=None, hide=None, sort=None, unit_overrides=None):
     p = base("table", title, x, y, w, h, TEMPO,
              [{"refId": "A", "datasource": TEMPO, "queryType": "traceql", "limit": 30, "tableType": table_type, "query": query}], desc)
-    p["fieldConfig"] = {"defaults": {"custom": {"align": "auto"}, "noValue": "nothing matched in this range"},
+    p["fieldConfig"] = {"defaults": {"custom": {"align": "auto"}, "noValue": "-"},
                         "overrides": unit_overrides or []}
     p["options"] = {"showHeader": True, "cellHeight": "sm"}
     alias = {"duration": "Duration", "time": "Start time", "spanID": "Span ID", "name": "Name"}
@@ -401,7 +401,7 @@ panels += [
     stat("Cache hit ratio",
          f'sum(max_over_time({TOK}{{type="cacheRead",model=~"$model"}}[{RNG}])) / clamp_min(sum(max_over_time({TOK}{{type=~"cacheRead|input|cacheCreation",model=~"$model"}}[{RNG}])), 1)',
          "percentunit", 0, y, desc="cacheRead / (cacheRead + input + cacheCreation). Higher = cheaper and faster."),
-    stat("API requests", f'sum(count_over_time({ev("api_request")} [{RNG}]))', "short", 4, y, w=3, ds=LOKI, color="purple",
+    stat("Requests", f'sum(count_over_time({ev("api_request")} [{RNG}]))', "short", 4, y, w=3, ds=LOKI, color="purple",
          desc="api_request events."),
     stat("API p95 latency", f'quantile_over_time(0.95, {ev("api_request")} | unwrap duration_ms | __error__="" [{RNG}]) by ()',
          "ms", 7, y, ds=LOKI, color="orange", desc="p95 request duration across all models."),
@@ -623,7 +623,7 @@ y += 8
 panels.append(tempo_table(
     "Recent interactions (click a trace ID to open the waterfall)",
     '{ resource.service.name = "claude-code" && name = "claude_code.interaction" }', 0, y, 24, 8, "traces",
-    hide=["traceService", "nested"], order=["traceID", "startTime", "traceName", "traceDuration"],
+    hide=["traceService", "nested", "traceName", "Name"], order=["traceID", "startTime", "traceName", "traceDuration"],
     rename={"traceID": "Trace ID", "startTime": "Start", "traceName": "Root span", "traceDuration": "Duration"}))
 y += 8
 # traceIdHidden must stay: the Span ID data link needs it to open the trace (it is already hidden from view).
@@ -660,11 +660,118 @@ panels += [
                      {"matcher": {"id": "byName", "options": "Loads"}, "properties": [{"id": "custom.width", "value": 90}]}]),
 ]
 y += 8
+# One line per event: the name first, then whichever of these fields the event carries.
+STREAM_LINE = ("{{ .event_name }}"
+               + "".join("{{ with .%s }}  %s{{ end }}" % (f, fmt) for f, fmt in (
+                   ("tool_name", "{{ . }}"), ("hook_name", "{{ . }}"), ("command_name", "/{{ . }}"), ("agent_type", "{{ . }}"),
+                   ("model", '{{ regexReplaceAll "-[0-9]{8}$" (regexReplaceAll "^claude-" . "") "" }}'), ("decision", "{{ . }}"), ("status", "{{ . }}"), ("trigger", "{{ . }}"),
+                   ("duration_ms", "{{ . }} ms"), ("total_duration_ms", "{{ . }} ms")))
+               + '{{ if eq .success "false" }}  FAILED{{ end }}')
 logs = base("logs", "Event stream (prompt text is redacted by default)", 0, y, 24, 12, LOKI,
-            [{"refId": "A", "datasource": LOKI, "queryType": "range", "expr": f'{L} | event_name!="plugin_loaded"'}])
+            [{"refId": "A", "datasource": LOKI, "queryType": "range", "expr": f'{L} | event_name!="plugin_loaded" | line_format `{STREAM_LINE}`'}])
 logs["options"] = {"showTime": True, "wrapLogMessage": True, "prettifyLogMessage": False, "enableLogDetails": True,
                    "sortOrder": "Descending", "dedupStrategy": "none"}
 panels.append(logs)
+
+# ---- display names -------------------------------------------------------------------------------------
+# Grafana's "Rename by regex" transformation rewrites series names (legends, bar gauge labels) without touching the query,
+# and value mappings do the same for table cells. The regex must be written /.../flags, otherwise Grafana anchors it.
+def rn(*pairs):
+    return [{"id": "renameByRegex", "options": {"regex": r, "renamePattern": to}} for r, to in pairs]
+
+
+# claude-haiku-4-5-20251001 -> haiku-4-5, claude-opus-5 -> opus-5 (no vendor prefix, no snapshot date)
+MODEL_RE = r"claude-([a-z]+(?:-\d+)*?)(?:-\d{8})?"
+MODEL_RN = rn((f"/{MODEL_RE}(?=\\s|$|,|\\))/g", "$1"))
+RENAMES = {
+    "Tokens per minute by type": rn(("/^input$/", "Input"), ("/^output$/", "Output"), ("/^cacheRead$/", "Cache read"),
+                                    ("/^cacheCreation$/", "Cache creation")),
+    "Tokens by type": rn(("/^input$/", "Input"), ("/^output$/", "Output"), ("/^cacheRead$/", "Cache read"),
+                         ("/^cacheCreation$/", "Cache creation")),
+    "Activity share by type": rn(("/^cli$/", "Claude working"), ("/^user$/", "You")),
+    "Limit usage over time": rn(("/^session/", "5-hour limit"), ("/^weekly_all/", "Weekly limit (all models)"),
+                                ("/^weekly_scoped /", "Weekly limit: ")),
+    "Permission decisions per minute": rn(("/\\(config\\)/", "(settings rule)"), ("/\\(user_temporary\\)/", "(you, this time)"),
+                                          ("/\\(user_permanent\\)/", "(you, always)")),
+    "Span rate by type": rn(("/claude_code\\.(.*)/", "$1"), ("/_/g", " "), ("/\\./g", " > ")),
+    "Span p95 latency by type": rn(("/claude_code\\.(.*)/", "$1"), ("/_/g", " "), ("/\\./g", " > ")),
+    "Span errors per hour": rn(("/claude_code\\.(.*)/", "$1"), ("/_/g", " "), ("/\\./g", " > ")),
+    "Events per minute by type": rn(("/_/g", " ")),
+}
+MODEL_MAP = {"type": "regex", "options": {"pattern": f"^{MODEL_RE}$", "result": {"text": "$1"}}}
+CELL_MAPS = {   # table title -> column header -> value mappings
+    "Subagent runs by type": {"Model": [MODEL_MAP]},
+    "Slow LLM requests (over 3 s, slowest first)": {"Model": [MODEL_MAP]},
+    "Slow tool calls (over 1 s, slowest first)": {"Tool": [
+        {"type": "regex", "options": {"pattern": "^mcp__(.+?)__(.+)$", "result": {"text": "$2 ($1)"}}}]},
+    "Plugins loaded": {"Plugin": [{"type": "regex", "options": {"pattern": "^cc-plugin-(.*)$", "result": {"text": "$1"}}}]},
+    "Plan": {
+        "Plan": [{"type": "value", "options": {k: {"text": v, "index": i} for i, (k, v) in enumerate(
+            (("max", "Max"), ("pro", "Pro"), ("team", "Team"), ("enterprise", "Enterprise"), ("free", "Free")))}}],
+        "Rate-limit tier": [{"type": "value", "options": {k: {"text": v, "index": i} for i, (k, v) in enumerate(
+            (("default_claude_max_20x", "Max 20x"), ("default_claude_max_5x", "Max 5x"), ("default_claude_pro", "Pro")))}},
+                            {"type": "regex", "options": {"pattern": "^default_claude_(.*)$", "result": {"text": "$1"}}}]},
+}
+EMPTY_IS_GOOD = {   # a chart that is empty because nothing went wrong should say so
+    "API errors per hour": "No API errors in this range",
+    "Tool failures per hour": "No tool failures in this range",
+    "Span errors per hour": "No span errors in this range",
+}
+
+MODEL_COLORS = ((".*opus.*", "purple"), (".*sonnet.*", "light-blue"), (".*sonnet-5-5.*", "blue"),
+                (".*haiku.*", "green"), (".*haiku-5-5.*", "light-green"))
+GOOD_HIGH = lambda warn, ok: [{"color": "red", "value": None}, {"color": "orange", "value": warn}, {"color": "green", "value": ok}]
+GOOD_LOW = lambda warn, bad: [{"color": "green", "value": None}, {"color": "orange", "value": warn}, {"color": "red", "value": bad}]
+STAT_STEPS = {
+    "Cache hit ratio": GOOD_HIGH(0.75, 0.9),
+    "Tool success rate": GOOD_HIGH(0.85, 0.95),
+    "Edit accept rate": GOOD_HIGH(0.5, 0.8),
+    "5-hour limit used": GOOD_LOW(0.7, 0.9),
+    "Weekly limit used": GOOD_LOW(0.7, 0.9),
+}
+TEXT_GOOD_BAD = lambda mapping: [{"id": "custom.cellOptions", "value": {"type": "color-text"}},
+                                 {"id": "color", "value": {"mode": "fixed", "fixedColor": "text"}},   # unmapped values stay neutral
+                                 {"id": "mappings", "value": [{"type": "value", "options": {
+                                     k: {"color": c, "index": i} for i, (k, c) in enumerate(mapping)}}]}]
+CELL_STYLES = {
+    "Permission mode and auto-mode verdicts": {"Auto-mode verdict": TEXT_GOOD_BAD((("allow", "green"), ("block", "red")))},
+    "Compactions by trigger": {"OK": TEXT_GOOD_BAD((("true", "green"), ("false", "red")))},
+    "Top sessions by cost": {"Cost": [{"id": "custom.cellOptions", "value": {"type": "gauge", "mode": "basic"}},
+                                      {"id": "color", "value": {"mode": "fixed", "fixedColor": "blue"}}, {"id": "min", "value": 0}]},
+}
+
+for pnl in panels:
+    title = pnl.get("title", "")
+    if pnl["type"] in ("timeseries", "bargauge"):
+        pnl["transformations"] = MODEL_RN + RENAMES.get(title, [])
+    for col, maps in CELL_MAPS.get(title, {}).items():
+        pnl["fieldConfig"]["overrides"].append({"matcher": {"id": "byName", "options": col},
+                                                "properties": [{"id": "mappings", "value": maps}]})
+    if title in EMPTY_IS_GOOD:
+        pnl["fieldConfig"]["defaults"]["noValue"] = EMPTY_IS_GOOD[title]
+    if title == "Cost per hour by model":
+        pnl["fieldConfig"]["defaults"]["decimals"] = 2   # axis ticks: $300.00, not $300.0000
+
+    # same model, same colour on every chart (later overrides win, so the specific versions come last)
+    if pnl["type"] in ("timeseries", "bargauge") and any(
+            "{{model}}" in t.get("legendFormat", "") or "by (model" in t.get("expr", "") for t in pnl["targets"]):
+        pnl["fieldConfig"]["overrides"] += [
+            {"matcher": {"id": "byRegexp", "options": rx}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": c}}]}
+            for rx, c in MODEL_COLORS]
+        if pnl["type"] == "timeseries" and any("p95" in t.get("legendFormat", "") for t in pnl["targets"]):
+            # p50 and p95 of one model share a colour, so p95 is drawn dashed
+            pnl["fieldConfig"]["overrides"].append(
+                {"matcher": {"id": "byRegexp", "options": "^p95 .*"},
+                 "properties": [{"id": "custom.lineStyle", "value": {"fill": "dash", "dash": [10, 10]}}]})
+
+    # tiles that mean good or bad get a colour; the number itself stays neutral until it crosses a line
+    if title in STAT_STEPS:
+        pnl["fieldConfig"]["defaults"]["color"] = {"mode": "thresholds"}
+        pnl["fieldConfig"]["defaults"]["thresholds"] = {"mode": "absolute", "steps": STAT_STEPS[title]}
+        pnl["options"]["colorMode"] = "value"
+
+    for col, props in CELL_STYLES.get(title, {}).items():
+        pnl["fieldConfig"]["overrides"].append({"matcher": {"id": "byName", "options": col}, "properties": props})
 
 dashboard = {
     "uid": "claude-code",
@@ -682,7 +789,8 @@ dashboard = {
         "name": "model", "label": "Model", "type": "query", "datasource": PROM,
         "query": {"query": f"label_values({TOK}, model)", "refId": "m"},
         "definition": f"label_values({TOK}, model)",
-        "refresh": 2, "includeAll": True, "multi": True, "allValue": ".*",
+        "refresh": 2, "includeAll": True,
+        "regex": "/^(?<value>claude-(?<text>[a-z]+(?:-\\d+)*?)(?:-\\d{8})?)$/", "multi": True, "allValue": ".*",
         "current": {"selected": True, "text": "All", "value": "$__all"}, "sort": 1}]},
     "annotations": {"list": [{
         "name": "Prompts", "enable": False, "iconColor": "blue", "datasource": LOKI,

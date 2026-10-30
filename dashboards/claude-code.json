@@ -33,6 +33,7 @@
         "definition": "label_values(claude_code_token_usage_tokens_total, model)",
         "refresh": 2,
         "includeAll": true,
+        "regex": "/^(?<value>claude-(?<text>[a-z]+(?:-\\d+)*?)(?:-\\d{8})?)$/",
         "multi": true,
         "allValue": ".*",
         "current": {
@@ -601,12 +602,28 @@
         "defaults": {
           "unit": "percentunit",
           "color": {
-            "mode": "fixed",
-            "fixedColor": "text"
+            "mode": "thresholds"
           },
           "noValue": "no data",
           "mappings": [],
-          "decimals": 1
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.7
+              },
+              {
+                "color": "red",
+                "value": 0.9
+              }
+            ]
+          }
         },
         "overrides": []
       },
@@ -782,12 +799,28 @@
         "defaults": {
           "unit": "percentunit",
           "color": {
-            "mode": "fixed",
-            "fixedColor": "text"
+            "mode": "thresholds"
           },
           "noValue": "no data",
           "mappings": [],
-          "decimals": 1
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.7
+              },
+              {
+                "color": "red",
+                "value": 0.9
+              }
+            ]
+          }
         },
         "overrides": []
       },
@@ -976,7 +1009,7 @@
               "group": "A"
             }
           },
-          "noValue": "no data yet",
+          "noValue": "none in this range",
           "min": 0,
           "decimals": 1,
           "max": 1
@@ -994,7 +1027,37 @@
           "mode": "multi",
           "sort": "desc"
         }
-      }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/^session/",
+            "renamePattern": "5-hour limit"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/^weekly_all/",
+            "renamePattern": "Weekly limit (all models)"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/^weekly_scoped /",
+            "renamePattern": "Weekly limit: "
+          }
+        }
+      ]
     },
     {
       "id": 17,
@@ -1031,7 +1094,7 @@
             "mode": "fixed",
             "fixedColor": "blue"
           },
-          "noValue": "no data yet",
+          "noValue": "none in this range",
           "min": 0,
           "displayName": "${__field.labels.source}",
           "decimals": 1,
@@ -1060,7 +1123,16 @@
           "values": false,
           "fields": ""
         }
-      }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        }
+      ]
     },
     {
       "id": 18,
@@ -1097,7 +1169,7 @@
             "mode": "fixed",
             "fixedColor": "blue"
           },
-          "noValue": "no data yet",
+          "noValue": "none in this range",
           "min": 0,
           "displayName": "${__field.labels.scope}",
           "decimals": 1,
@@ -1126,7 +1198,16 @@
           "values": false,
           "fields": ""
         }
-      }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        }
+      ]
     },
     {
       "id": 19,
@@ -1165,9 +1246,87 @@
               "type": "auto"
             }
           },
-          "noValue": "no data yet"
+          "noValue": "none in this range"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Plan"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "max": {
+                        "text": "Max",
+                        "index": 0
+                      },
+                      "pro": {
+                        "text": "Pro",
+                        "index": 1
+                      },
+                      "team": {
+                        "text": "Team",
+                        "index": 2
+                      },
+                      "enterprise": {
+                        "text": "Enterprise",
+                        "index": 3
+                      },
+                      "free": {
+                        "text": "Free",
+                        "index": 4
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Rate-limit tier"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "default_claude_max_20x": {
+                        "text": "Max 20x",
+                        "index": 0
+                      },
+                      "default_claude_max_5x": {
+                        "text": "Max 5x",
+                        "index": 1
+                      },
+                      "default_claude_pro": {
+                        "text": "Pro",
+                        "index": 2
+                      }
+                    }
+                  },
+                  {
+                    "type": "regex",
+                    "options": {
+                      "pattern": "^default_claude_(.*)$",
+                      "result": {
+                        "text": "$1"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "showHeader": true,
@@ -1869,12 +2028,28 @@
         "defaults": {
           "unit": "percentunit",
           "color": {
-            "mode": "fixed",
-            "fixedColor": "text"
+            "mode": "thresholds"
           },
           "noValue": "0",
           "mappings": [],
-          "decimals": 1
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.75
+              },
+              {
+                "color": "green",
+                "value": 0.9
+              }
+            ]
+          }
         },
         "overrides": []
       },
@@ -1895,7 +2070,7 @@
     {
       "id": 33,
       "type": "stat",
-      "title": "API requests",
+      "title": "Requests",
       "description": "api_request events.",
       "gridPos": {
         "x": 4,
@@ -2030,12 +2205,28 @@
         "defaults": {
           "unit": "percentunit",
           "color": {
-            "mode": "fixed",
-            "fixedColor": "text"
+            "mode": "thresholds"
           },
           "noValue": "0",
           "mappings": [],
-          "decimals": 1
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.85
+              },
+              {
+                "color": "green",
+                "value": 0.95
+              }
+            ]
+          }
         },
         "overrides": []
       },
@@ -2272,11 +2463,87 @@
               "group": "A"
             }
           },
-          "noValue": "no data yet",
+          "noValue": "none in this range",
           "min": 0,
-          "decimals": 4
+          "decimals": 2
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*opus.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "purple"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*sonnet.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "light-blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*sonnet-5-5.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*haiku.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*haiku-5-5.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "light-green"
+                }
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "legend": {
@@ -2289,7 +2556,16 @@
           "mode": "multi",
           "sort": "desc"
         }
-      }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        }
+      ]
     },
     {
       "id": 41,
@@ -2365,7 +2641,7 @@
               "group": "A"
             }
           },
-          "noValue": "no data yet",
+          "noValue": "none in this range",
           "min": 0,
           "decimals": 1
         },
@@ -2382,7 +2658,44 @@
           "mode": "multi",
           "sort": "desc"
         }
-      }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/^input$/",
+            "renamePattern": "Input"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/^output$/",
+            "renamePattern": "Output"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/^cacheRead$/",
+            "renamePattern": "Cache read"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/^cacheCreation$/",
+            "renamePattern": "Cache creation"
+          }
+        }
+      ]
     },
     {
       "id": 42,
@@ -2419,12 +2732,88 @@
             "mode": "fixed",
             "fixedColor": "blue"
           },
-          "noValue": "no data yet",
+          "noValue": "none in this range",
           "min": 0,
           "displayName": "${__field.labels.model}",
           "decimals": 4
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*opus.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "purple"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*sonnet.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "light-blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*sonnet-5-5.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*haiku.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*haiku-5-5.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "light-green"
+                }
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "orientation": "horizontal",
@@ -2447,7 +2836,16 @@
           "values": false,
           "fields": ""
         }
-      }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        }
+      ]
     },
     {
       "id": 43,
@@ -2484,7 +2882,7 @@
             "mode": "fixed",
             "fixedColor": "blue"
           },
-          "noValue": "no data yet",
+          "noValue": "none in this range",
           "min": 0,
           "displayName": "${__field.labels.query_source}",
           "decimals": 4
@@ -2512,7 +2910,16 @@
           "values": false,
           "fields": ""
         }
-      }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        }
+      ]
     },
     {
       "id": 44,
@@ -2549,7 +2956,7 @@
             "mode": "fixed",
             "fixedColor": "blue"
           },
-          "noValue": "no data yet",
+          "noValue": "none in this range",
           "min": 0,
           "displayName": "${__field.labels.effort}",
           "decimals": 4
@@ -2577,7 +2984,16 @@
           "values": false,
           "fields": ""
         }
-      }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        }
+      ]
     },
     {
       "id": 45,
@@ -2614,7 +3030,7 @@
             "mode": "fixed",
             "fixedColor": "blue"
           },
-          "noValue": "no data yet",
+          "noValue": "none in this range",
           "min": 0,
           "displayName": "${__field.labels.type}"
         },
@@ -2641,7 +3057,44 @@
           "values": false,
           "fields": ""
         }
-      }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/^input$/",
+            "renamePattern": "Input"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/^output$/",
+            "renamePattern": "Output"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/^cacheRead$/",
+            "renamePattern": "Cache read"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/^cacheCreation$/",
+            "renamePattern": "Cache creation"
+          }
+        }
+      ]
     },
     {
       "id": 46,
@@ -2680,7 +3133,7 @@
               "type": "auto"
             }
           },
-          "noValue": "no data yet"
+          "noValue": "none in this range"
         },
         "overrides": [
           {
@@ -2708,6 +3161,32 @@
               {
                 "id": "noValue",
                 "value": "unknown"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Cost"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "gauge",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              },
+              {
+                "id": "min",
+                "value": 0
               }
             ]
           }
@@ -2782,11 +3261,87 @@
               "group": "A"
             }
           },
-          "noValue": "no data yet",
+          "noValue": "none in this range",
           "min": 0,
           "decimals": 4
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*opus.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "purple"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*sonnet.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "light-blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*sonnet-5-5.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*haiku.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*haiku-5-5.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "light-green"
+                }
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "legend": {
@@ -2799,7 +3354,16 @@
           "mode": "multi",
           "sort": "desc"
         }
-      }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        }
+      ]
     },
     {
       "id": 48,
@@ -2836,7 +3400,7 @@
             "mode": "fixed",
             "fixedColor": "blue"
           },
-          "noValue": "no data yet",
+          "noValue": "none in this range",
           "min": 0,
           "displayName": "${__field.labels.agent_name}",
           "decimals": 4
@@ -2864,7 +3428,16 @@
           "values": false,
           "fields": ""
         }
-      }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        }
+      ]
     },
     {
       "id": 49,
@@ -2901,7 +3474,7 @@
             "mode": "fixed",
             "fixedColor": "blue"
           },
-          "noValue": "no data yet",
+          "noValue": "none in this range",
           "min": 0,
           "displayName": "${__field.labels.mcp_server_name}",
           "decimals": 4
@@ -2929,7 +3502,16 @@
           "values": false,
           "fields": ""
         }
-      }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        }
+      ]
     },
     {
       "id": 50,
@@ -2966,7 +3548,7 @@
             "mode": "fixed",
             "fixedColor": "blue"
           },
-          "noValue": "no data yet",
+          "noValue": "none in this range",
           "min": 0,
           "displayName": "${__field.labels.mcp_server_name} / ${__field.labels.mcp_tool_name}"
         },
@@ -2993,7 +3575,16 @@
           "values": false,
           "fields": ""
         }
-      }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        }
+      ]
     },
     {
       "id": 51,
@@ -3030,7 +3621,7 @@
             "mode": "fixed",
             "fixedColor": "blue"
           },
-          "noValue": "no data yet",
+          "noValue": "none in this range",
           "min": 0,
           "displayName": "${__field.labels.service_version}",
           "decimals": 4
@@ -3058,7 +3649,16 @@
           "values": false,
           "fields": ""
         }
-      }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        }
+      ]
     },
     {
       "id": 52,
@@ -3108,7 +3708,7 @@
             "mode": "fixed",
             "fixedColor": "blue"
           },
-          "noValue": "no data yet",
+          "noValue": "none in this range",
           "min": 0,
           "displayName": "${__field.labels.type}"
         },
@@ -3135,7 +3735,16 @@
           "values": false,
           "fields": ""
         }
-      }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        }
+      ]
     },
     {
       "id": 54,
@@ -3172,7 +3781,7 @@
             "mode": "fixed",
             "fixedColor": "blue"
           },
-          "noValue": "no data yet",
+          "noValue": "none in this range",
           "min": 0,
           "displayName": "${__field.labels.tool_name} / ${__field.labels.decision}"
         },
@@ -3199,7 +3808,16 @@
           "values": false,
           "fields": ""
         }
-      }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        }
+      ]
     },
     {
       "id": 55,
@@ -3236,7 +3854,7 @@
             "mode": "fixed",
             "fixedColor": "blue"
           },
-          "noValue": "no data yet",
+          "noValue": "none in this range",
           "min": 0,
           "displayName": "${__field.labels.language}"
         },
@@ -3263,7 +3881,16 @@
           "values": false,
           "fields": ""
         }
-      }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        }
+      ]
     },
     {
       "id": 56,
@@ -3297,12 +3924,28 @@
         "defaults": {
           "unit": "percentunit",
           "color": {
-            "mode": "fixed",
-            "fixedColor": "text"
+            "mode": "thresholds"
           },
           "noValue": "0",
           "mappings": [],
-          "decimals": 1
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.5
+              },
+              {
+                "color": "green",
+                "value": 0.8
+              }
+            ]
+          }
         },
         "overrides": []
       },
@@ -3364,7 +4007,7 @@
               "group": "A"
             }
           },
-          "noValue": "no data yet",
+          "noValue": "none in this range",
           "min": 0,
           "decimals": 1
         },
@@ -3381,7 +4024,16 @@
           "mode": "multi",
           "sort": "desc"
         }
-      }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        }
+      ]
     },
     {
       "id": 58,
@@ -3428,7 +4080,7 @@
               "group": "A"
             }
           },
-          "noValue": "no data yet",
+          "noValue": "none in this range",
           "min": 0,
           "decimals": 1
         },
@@ -3445,7 +4097,30 @@
           "mode": "multi",
           "sort": "desc"
         }
-      }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/^cli$/",
+            "renamePattern": "Claude working"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/^user$/",
+            "renamePattern": "You"
+          }
+        }
+      ]
     },
     {
       "id": 59,
@@ -3492,7 +4167,7 @@
               "group": "A"
             }
           },
-          "noValue": "no data yet",
+          "noValue": "none in this range",
           "min": 0,
           "decimals": 1
         },
@@ -3509,7 +4184,16 @@
           "mode": "multi",
           "sort": "desc"
         }
-      }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        }
+      ]
     },
     {
       "id": 60,
@@ -3598,7 +4282,7 @@
               "group": "A"
             }
           },
-          "noValue": "no data yet",
+          "noValue": "none in this range",
           "min": 0,
           "decimals": 2
         },
@@ -3676,6 +4360,192 @@
                 "value": 0
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*opus.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "purple"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*sonnet.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "light-blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*sonnet-5-5.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*haiku.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*haiku-5-5.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "light-green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^p95 .*"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    10,
+                    10
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*opus.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "purple"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*sonnet.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "light-blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*sonnet-5-5.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*haiku.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*haiku-5-5.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "light-green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^p95 .*"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    10,
+                    10
+                  ]
+                }
+              }
+            ]
           }
         ]
       },
@@ -3690,7 +4560,16 @@
           "mode": "multi",
           "sort": "desc"
         }
-      }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        }
+      ]
     },
     {
       "id": 62,
@@ -3766,7 +4645,7 @@
               "group": "A"
             }
           },
-          "noValue": "no data yet",
+          "noValue": "none in this range",
           "min": 0,
           "decimals": 2
         },
@@ -3844,6 +4723,192 @@
                 "value": 0
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*opus.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "purple"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*sonnet.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "light-blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*sonnet-5-5.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*haiku.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*haiku-5-5.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "light-green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^p95 .*"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    10,
+                    10
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*opus.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "purple"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*sonnet.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "light-blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*sonnet-5-5.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*haiku.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*haiku-5-5.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "light-green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^p95 .*"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    10,
+                    10
+                  ]
+                }
+              }
+            ]
           }
         ]
       },
@@ -3858,7 +4923,16 @@
           "mode": "multi",
           "sort": "desc"
         }
-      }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        }
+      ]
     },
     {
       "id": 63,
@@ -3904,11 +4978,87 @@
               "group": "A"
             }
           },
-          "noValue": "no data yet",
+          "noValue": "none in this range",
           "min": 0,
           "decimals": 1
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*opus.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "purple"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*sonnet.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "light-blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*sonnet-5-5.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*haiku.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*haiku-5-5.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "light-green"
+                }
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "legend": {
@@ -3921,7 +5071,16 @@
           "mode": "multi",
           "sort": "desc"
         }
-      }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        }
+      ]
     },
     {
       "id": 64,
@@ -3967,10 +5126,86 @@
               "group": "A"
             }
           },
-          "noValue": "no data yet",
+          "noValue": "none in this range",
           "min": 0
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*opus.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "purple"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*sonnet.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "light-blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*sonnet-5-5.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*haiku.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*haiku-5-5.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "light-green"
+                }
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "legend": {
@@ -3983,7 +5218,16 @@
           "mode": "multi",
           "sort": "desc"
         }
-      }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        }
+      ]
     },
     {
       "id": 65,
@@ -4029,10 +5273,86 @@
               "group": "A"
             }
           },
-          "noValue": "no data yet",
+          "noValue": "none in this range",
           "min": 0
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*opus.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "purple"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*sonnet.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "light-blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*sonnet-5-5.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*haiku.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*haiku-5-5.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "light-green"
+                }
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "legend": {
@@ -4045,7 +5365,16 @@
           "mode": "multi",
           "sort": "desc"
         }
-      }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        }
+      ]
     },
     {
       "id": 66,
@@ -4209,11 +5538,87 @@
               "group": "A"
             }
           },
-          "noValue": "no data yet",
+          "noValue": "No API errors in this range",
           "min": 0,
           "decimals": 1
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*opus.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "purple"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*sonnet.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "light-blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*sonnet-5-5.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*haiku.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*haiku-5-5.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "light-green"
+                }
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "legend": {
@@ -4226,7 +5631,16 @@
           "mode": "multi",
           "sort": "desc"
         }
-      }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        }
+      ]
     },
     {
       "id": 68,
@@ -4285,7 +5699,7 @@
               "group": "A"
             }
           },
-          "noValue": "no data yet",
+          "noValue": "none in this range",
           "min": 0,
           "decimals": 1
         },
@@ -4302,7 +5716,16 @@
           "mode": "multi",
           "sort": "desc"
         }
-      }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        }
+      ]
     },
     {
       "id": 70,
@@ -4348,7 +5771,7 @@
               "group": "A"
             }
           },
-          "noValue": "no data yet",
+          "noValue": "none in this range",
           "min": 0,
           "decimals": 2
         },
@@ -4365,7 +5788,16 @@
           "mode": "multi",
           "sort": "desc"
         }
-      }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        }
+      ]
     },
     {
       "id": 71,
@@ -4411,7 +5843,7 @@
               "group": "A"
             }
           },
-          "noValue": "no data yet",
+          "noValue": "No tool failures in this range",
           "min": 0,
           "decimals": 1
         },
@@ -4428,7 +5860,16 @@
           "mode": "multi",
           "sort": "desc"
         }
-      }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        }
+      ]
     },
     {
       "id": 72,
@@ -4474,7 +5915,7 @@
               "group": "A"
             }
           },
-          "noValue": "no data yet",
+          "noValue": "none in this range",
           "min": 0,
           "decimals": 1
         },
@@ -4491,7 +5932,37 @@
           "mode": "multi",
           "sort": "desc"
         }
-      }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/\\(config\\)/",
+            "renamePattern": "(settings rule)"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/\\(user_temporary\\)/",
+            "renamePattern": "(you, this time)"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/\\(user_permanent\\)/",
+            "renamePattern": "(you, always)"
+          }
+        }
+      ]
     },
     {
       "id": 73,
@@ -4559,6 +6030,45 @@
               {
                 "id": "decimals",
                 "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Auto-mode verdict"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "text"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "allow": {
+                        "color": "green",
+                        "index": 0
+                      },
+                      "block": {
+                        "color": "red",
+                        "index": 1
+                      }
+                    }
+                  }
+                ]
               }
             ]
           }
@@ -4645,7 +6155,7 @@
               "group": "A"
             }
           },
-          "noValue": "no data yet",
+          "noValue": "none in this range",
           "min": 0,
           "decimals": 2
         },
@@ -4662,7 +6172,16 @@
           "mode": "multi",
           "sort": "desc"
         }
-      }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        }
+      ]
     },
     {
       "id": 75,
@@ -4700,7 +6219,7 @@
               "type": "auto"
             }
           },
-          "noValue": "no data yet"
+          "noValue": "none in this range"
         },
         "overrides": [
           {
@@ -5075,6 +6594,28 @@
                 "value": 0
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Model"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "regex",
+                    "options": {
+                      "pattern": "^claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?$",
+                      "result": {
+                        "text": "$1"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
           }
         ]
       },
@@ -5159,7 +6700,7 @@
               "group": "A"
             }
           },
-          "noValue": "no data yet",
+          "noValue": "none in this range",
           "min": 0,
           "decimals": 2
         },
@@ -5176,7 +6717,16 @@
           "mode": "multi",
           "sort": "desc"
         }
-      }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        }
+      ]
     },
     {
       "id": 81,
@@ -5222,7 +6772,7 @@
               "group": "A"
             }
           },
-          "noValue": "no data yet",
+          "noValue": "none in this range",
           "min": 0
         },
         "overrides": []
@@ -5238,7 +6788,16 @@
           "mode": "multi",
           "sort": "desc"
         }
-      }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        }
+      ]
     },
     {
       "id": 82,
@@ -5415,7 +6974,7 @@
               "group": "A"
             }
           },
-          "noValue": "no data yet",
+          "noValue": "none in this range",
           "min": 0,
           "decimals": 1
         },
@@ -5432,7 +6991,16 @@
           "mode": "multi",
           "sort": "desc"
         }
-      }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        }
+      ]
     },
     {
       "id": 86,
@@ -5478,7 +7046,7 @@
               "group": "A"
             }
           },
-          "noValue": "no data yet",
+          "noValue": "none in this range",
           "min": 0,
           "decimals": 2
         },
@@ -5495,7 +7063,16 @@
           "mode": "multi",
           "sort": "desc"
         }
-      }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        }
+      ]
     },
     {
       "id": 87,
@@ -5764,7 +7341,7 @@
               "group": "A"
             }
           },
-          "noValue": "no data yet",
+          "noValue": "none in this range",
           "min": 0
         },
         "overrides": []
@@ -5780,7 +7357,16 @@
           "mode": "multi",
           "sort": "desc"
         }
-      }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        }
+      ]
     },
     {
       "id": 91,
@@ -5826,7 +7412,7 @@
               "group": "A"
             }
           },
-          "noValue": "no data yet",
+          "noValue": "none in this range",
           "min": 0,
           "decimals": 2
         },
@@ -5843,7 +7429,16 @@
           "mode": "multi",
           "sort": "desc"
         }
-      }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        }
+      ]
     },
     {
       "id": 92,
@@ -5911,6 +7506,45 @@
               {
                 "id": "decimals",
                 "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "OK"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "text"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "true": {
+                        "color": "green",
+                        "index": 0
+                      },
+                      "false": {
+                        "color": "red",
+                        "index": 1
+                      }
+                    }
+                  }
+                ]
               }
             ]
           }
@@ -6011,7 +7645,7 @@
               "group": "A"
             }
           },
-          "noValue": "no data yet",
+          "noValue": "none in this range",
           "min": 0,
           "decimals": 2
         },
@@ -6028,7 +7662,37 @@
           "mode": "multi",
           "sort": "desc"
         }
-      }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude_code\\.(.*)/",
+            "renamePattern": "$1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/_/g",
+            "renamePattern": " "
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/\\./g",
+            "renamePattern": " > "
+          }
+        }
+      ]
     },
     {
       "id": 95,
@@ -6075,7 +7739,7 @@
               "group": "A"
             }
           },
-          "noValue": "no data yet",
+          "noValue": "none in this range",
           "min": 0,
           "decimals": 2
         },
@@ -6092,7 +7756,37 @@
           "mode": "multi",
           "sort": "desc"
         }
-      }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude_code\\.(.*)/",
+            "renamePattern": "$1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/_/g",
+            "renamePattern": " "
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/\\./g",
+            "renamePattern": " > "
+          }
+        }
+      ]
     },
     {
       "id": 96,
@@ -6139,7 +7833,7 @@
               "group": "A"
             }
           },
-          "noValue": "no data yet",
+          "noValue": "No span errors in this range",
           "min": 0,
           "decimals": 1
         },
@@ -6156,7 +7850,37 @@
           "mode": "multi",
           "sort": "desc"
         }
-      }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude_code\\.(.*)/",
+            "renamePattern": "$1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/_/g",
+            "renamePattern": " "
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/\\./g",
+            "renamePattern": " > "
+          }
+        }
+      ]
     },
     {
       "id": 97,
@@ -6191,7 +7915,7 @@
           "custom": {
             "align": "auto"
           },
-          "noValue": "nothing matched in this range"
+          "noValue": "-"
         },
         "overrides": []
       },
@@ -6205,7 +7929,9 @@
           "options": {
             "excludeByName": {
               "traceService": true,
-              "nested": true
+              "nested": true,
+              "traceName": true,
+              "Name": true
             },
             "indexByName": {
               "traceID": 0,
@@ -6256,7 +7982,7 @@
           "custom": {
             "align": "auto"
           },
-          "noValue": "nothing matched in this range"
+          "noValue": "-"
         },
         "overrides": [
           {
@@ -6268,6 +7994,28 @@
               {
                 "id": "unit",
                 "value": "ns"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Model"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "regex",
+                    "options": {
+                      "pattern": "^claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?$",
+                      "result": {
+                        "text": "$1"
+                      }
+                    }
+                  }
+                ]
               }
             ]
           }
@@ -6356,7 +8104,7 @@
           "custom": {
             "align": "auto"
           },
-          "noValue": "nothing matched in this range"
+          "noValue": "-"
         },
         "overrides": [
           {
@@ -6368,6 +8116,28 @@
               {
                 "id": "unit",
                 "value": "ns"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Tool"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "regex",
+                    "options": {
+                      "pattern": "^mcp__(.+?)__(.+)$",
+                      "result": {
+                        "text": "$2 ($1)"
+                      }
+                    }
+                  }
+                ]
               }
             ]
           }
@@ -6478,7 +8248,7 @@
               "group": "A"
             }
           },
-          "noValue": "no data yet",
+          "noValue": "none in this range",
           "min": 0,
           "decimals": 1
         },
@@ -6495,7 +8265,23 @@
           "mode": "multi",
           "sort": "desc"
         }
-      }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/_/g",
+            "renamePattern": " "
+          }
+        }
+      ]
     },
     {
       "id": 102,
@@ -6533,7 +8319,7 @@
               "type": "auto"
             }
           },
-          "noValue": "no data yet"
+          "noValue": "none in this range"
         },
         "overrides": [
           {
@@ -6557,6 +8343,28 @@
               {
                 "id": "custom.width",
                 "value": 90
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Plugin"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "regex",
+                    "options": {
+                      "pattern": "^cc-plugin-(.*)$",
+                      "result": {
+                        "text": "$1"
+                      }
+                    }
+                  }
+                ]
               }
             ]
           }
@@ -6612,7 +8420,7 @@
             "uid": "loki"
           },
           "queryType": "range",
-          "expr": "{service_name=\"claude-code\"} | event_name!=\"plugin_loaded\""
+          "expr": "{service_name=\"claude-code\"} | event_name!=\"plugin_loaded\" | line_format `{{ .event_name }}{{ with .tool_name }}  {{ . }}{{ end }}{{ with .hook_name }}  {{ . }}{{ end }}{{ with .command_name }}  /{{ . }}{{ end }}{{ with .agent_type }}  {{ . }}{{ end }}{{ with .model }}  {{ regexReplaceAll \"-[0-9]{8}$\" (regexReplaceAll \"^claude-\" . \"\") \"\" }}{{ end }}{{ with .decision }}  {{ . }}{{ end }}{{ with .status }}  {{ . }}{{ end }}{{ with .trigger }}  {{ . }}{{ end }}{{ with .duration_ms }}  {{ . }} ms{{ end }}{{ with .total_duration_ms }}  {{ . }} ms{{ end }}{{ if eq .success \"false\" }}  FAILED{{ end }}`"
         }
       ],
       "options": {
