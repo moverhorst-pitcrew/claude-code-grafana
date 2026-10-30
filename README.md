@@ -177,6 +177,13 @@ For Claude Code running in a container, put the variables from [`claude-settings
 
 Import [`dashboards/claude-code.json`](dashboards/claude-code.json) (also attached to every [release](https://github.com/moverhorst-pitcrew/claude-code-grafana/releases)) under *Dashboards > New > Import*. You need a Prometheus, a Loki and a Tempo datasource that receive Claude Code's OTLP data, for example through the OpenTelemetry Collector. The dashboard picks the first datasource of each type; change `ds_prometheus`, `ds_loki` and `ds_tempo` under *Dashboard settings > Variables* if you have several.
 
+## Alert examples
+
+[`examples/alerting/`](examples/alerting/) has Grafana alert rules in provisioning format for
+four common cases: weekly usage above 80%, 5-hour usage above 90%, a stale usage poller, and
+daily cost per host above a threshold. Copy the ones you want, adjust the datasource uid and
+threshold, and wire up a contact point; see that folder's README for details.
+
 ## Operating it
 
 ```bash
