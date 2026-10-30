@@ -154,7 +154,9 @@ python3 tools/gen_dashboard.py > dashboards/claude-code.json
 python3 tools/validate_dashboard.py --range 24h   # runs every query; 15m, 3h, 24h or 7d
 ```
 
-The validator queries Grafana anonymously; set `GRAFANA_PASSWORD` if anonymous viewing is off.
+The validator queries Grafana anonymously; set `GRAFANA_PASSWORD` if anonymous viewing is off. CI runs the same check
+on every push: it starts the stack with `docker compose up -d`, feeds it with `tools/send_sample_telemetry.py`, and
+runs the validator against that, so a query that errors against a live Grafana fails the build.
 
 Names, colours and empty states are set in one block near the end of the script, so a new label never means touching a query: `RENAMES` and `CELL_MAPS` (Grafana's *rename by regex* transformation and value mappings), `MODEL_COLORS`, `STAT_STEPS` (the colour lines) and `EMPTY_IS_GOOD`.
 
@@ -222,6 +224,7 @@ Data lives in `~/.local/share/otel-lgtm` (`docker compose down -v` for the compo
 | `dashboards/claude-code.json` | The generated dashboard |
 | `tools/gen_dashboard.py` | **Source of truth** for the dashboard |
 | `tools/validate_dashboard.py` | Runs every dashboard query at a chosen range |
+| `tools/send_sample_telemetry.py` | Pushes sample OTLP metrics, logs and traces for CI to validate the dashboard against |
 | `provisioning/`, `quadlet/` | Grafana dashboard provisioning, and the Podman service template |
 | `claude-settings/` | The Claude Code environment variables and the script that merges them into `settings.json` |
 | `usage-poller/` | The optional subscription usage poller and its systemd units |

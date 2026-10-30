@@ -40,3 +40,35 @@ jobs:
         run: shellcheck install.sh
       - name: Dashboard JSON is valid
         run: python -c "import json; json.load(open('dashboards/claude-code.json'))"
+
+  dashboard-smoke:
+    # Starts the real stack, feeds it sample telemetry and runs every dashboard query against it, so a query that
+    # errors (bad PromQL/LogQL/TraceQL, a wrong datasource type) fails CI instead of only showing up empty in Grafana.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.15"
+      - name: Start the stack
+        run: docker compose up -d
+      - name: Wait for Grafana
+        run: |
+          for i in $(seq 1 60); do
+            curl -sf http://127.0.0.1:3000/api/health && exit 0
+            sleep 2
+          done
+          echo "Grafana did not become healthy in time" >&2
+          exit 1
+      - name: Send sample telemetry
+        run: python3 tools/send_sample_telemetry.py
+      - name: Give the collector a moment to ingest it
+        run: sleep 10
+      - name: Validate the dashboard
+        run: python3 tools/validate_dashboard.py --range 3h
+      - name: Stack logs
+        if: failure()
+        run: docker compose logs
+      - name: Stop the stack
+        if: always()
+        run: docker compose down -v
