@@ -797,7 +797,7 @@ for pnl in panels:
 dashboard = {
     "uid": "claude-code",
     "title": "Claude Code",
-    "description": "Cost, tokens, productivity, API/tool performance, traces and events for local Claude Code sessions.",
+    "description": "Cost, tokens, productivity, API/tool performance, traces and events for Claude Code sessions, per host.",
     "tags": ["claude-code", "otel"],
     "timezone": "browser",
     "schemaVersion": 39,

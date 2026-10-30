@@ -6,6 +6,7 @@ providers:
   - name: "Claude Code"
     type: file
     disableDeletion: false
+    folder: "Claude Code"
     allowUiUpdates: true
     updateIntervalSeconds: 30
     options:
