@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Unit tests (also checks that dashboards/claude-code.json matches the generator)
+        run: python -m unittest discover -s tests -t . -v
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install linters
+        run: pip install ruff yamllint
+      - name: Python
+        run: ruff check .
+      - name: YAML
+        run: yamllint .
+      - name: Shell
+        run: shellcheck install.sh
+      - name: Dashboard JSON is valid
+        run: python -c "import json; json.load(open('dashboards/claude-code.json'))"
