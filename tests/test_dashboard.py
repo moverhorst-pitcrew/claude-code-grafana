@@ -40,7 +40,9 @@ class GeneratedDashboard(unittest.TestCase):
         cls.d = gen.dashboard
 
     def test_has_model_and_host_variables(self):
-        self.assertEqual([v["name"] for v in self.d["templating"]["list"]][:2], ["model", "host"])
+        names = [v["name"] for v in self.d["templating"]["list"]]
+        self.assertEqual(names[:2], ["model", "host"])
+        self.assertEqual(names[2:], ["ds_prometheus", "ds_loki", "ds_tempo"])
 
     def test_every_claude_code_query_is_scoped_to_the_host(self):
         for title, expr in all_exprs(self.d):

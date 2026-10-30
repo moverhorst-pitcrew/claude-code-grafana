@@ -20,9 +20,16 @@ Design notes
 """
 import json, re
 
-PROM = {"type": "prometheus", "uid": "prometheus"}
-LOKI = {"type": "loki", "uid": "loki"}
-TEMPO = {"type": "tempo", "uid": "tempo"}
+# Datasources are dashboard variables, so the dashboard imports into any Grafana: each variable picks the first
+# datasource of its type (change it under Dashboard settings > Variables if you have several).
+PROM = {"type": "prometheus", "uid": "${ds_prometheus}"}
+LOKI = {"type": "loki", "uid": "${ds_loki}"}
+TEMPO = {"type": "tempo", "uid": "${ds_tempo}"}
+DATASOURCE_VARS = [
+    {"name": f"ds_{kind}", "label": label, "type": "datasource", "query": kind, "hide": 2, "refresh": 1,
+     "includeAll": False, "multi": False, "current": {}, "options": []}
+    for kind, label in (("prometheus", "Prometheus"), ("loki", "Loki"), ("tempo", "Tempo"))
+]
 
 _id = [0]
 _refs = "ABCDEFGHIJKLMNOP"
@@ -822,7 +829,7 @@ dashboard = {
          "query": {"query": f"label_values({SESS}, host_name)", "refId": "h"},
          "definition": f"label_values({SESS}, host_name)",
          "refresh": 2, "includeAll": True, "multi": True, "allValue": ".*",
-         "current": {"selected": True, "text": "All", "value": "$__all"}, "sort": 1}]},
+         "current": {"selected": True, "text": "All", "value": "$__all"}, "sort": 1}] + DATASOURCE_VARS},
     "annotations": {"list": [{
         "name": "Prompts", "enable": False, "iconColor": "blue", "datasource": LOKI,
         "expr": f'{L} | event_name="user_prompt"', "titleFormat": "Prompt", "textFormat": "{{prompt_length}} chars",

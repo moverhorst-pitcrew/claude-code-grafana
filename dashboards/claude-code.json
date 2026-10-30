@@ -24,7 +24,7 @@
         "type": "query",
         "datasource": {
           "type": "prometheus",
-          "uid": "prometheus"
+          "uid": "${ds_prometheus}"
         },
         "query": {
           "query": "label_values(claude_code_token_usage_tokens_total, model)",
@@ -49,7 +49,7 @@
         "type": "query",
         "datasource": {
           "type": "prometheus",
-          "uid": "prometheus"
+          "uid": "${ds_prometheus}"
         },
         "query": {
           "query": "label_values(claude_code_session_count_total, host_name)",
@@ -66,6 +66,42 @@
           "value": "$__all"
         },
         "sort": 1
+      },
+      {
+        "name": "ds_prometheus",
+        "label": "Prometheus",
+        "type": "datasource",
+        "query": "prometheus",
+        "hide": 2,
+        "refresh": 1,
+        "includeAll": false,
+        "multi": false,
+        "current": {},
+        "options": []
+      },
+      {
+        "name": "ds_loki",
+        "label": "Loki",
+        "type": "datasource",
+        "query": "loki",
+        "hide": 2,
+        "refresh": 1,
+        "includeAll": false,
+        "multi": false,
+        "current": {},
+        "options": []
+      },
+      {
+        "name": "ds_tempo",
+        "label": "Tempo",
+        "type": "datasource",
+        "query": "tempo",
+        "hide": 2,
+        "refresh": 1,
+        "includeAll": false,
+        "multi": false,
+        "current": {},
+        "options": []
       }
     ]
   },
@@ -77,7 +113,7 @@
         "iconColor": "blue",
         "datasource": {
           "type": "loki",
-          "uid": "loki"
+          "uid": "${ds_loki}"
         },
         "expr": "{service_name=\"claude-code\"} | event_name=\"user_prompt\"",
         "titleFormat": "Prompt",
@@ -113,13 +149,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "sum(count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_error\" [$__range])) or vector(0)",
           "legendFormat": "",
@@ -178,13 +214,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "sum(count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"mcp_server_connection\" | status=\"failed\" [$__range])) or vector(0)",
           "legendFormat": "",
@@ -243,13 +279,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "((((sum(count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"tool_result\" | success=\"false\" [$__range])) or vector(0)) + 1) / ((sum(count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"tool_result\" [$__range])) or vector(0)) + 2)) / (((sum(count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"tool_result\" | success=\"false\" [7d])) or vector(0)) + 1) / ((sum(count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"tool_result\" [7d])) or vector(0)) + 2)))",
           "legendFormat": "",
@@ -313,13 +349,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "(sum(max_over_time(claude_code_token_usage_tokens_total{host_name=~\"$host\",type=\"cacheRead\",model=~\"$model\"}[$__range])) / sum(max_over_time(claude_code_token_usage_tokens_total{host_name=~\"$host\",type=~\"cacheRead|input|cacheCreation\",model=~\"$model\"}[$__range]))) / (sum(max_over_time(claude_code_token_usage_tokens_total{host_name=~\"$host\",type=\"cacheRead\",model=~\"$model\"}[7d])) / sum(max_over_time(claude_code_token_usage_tokens_total{host_name=~\"$host\",type=~\"cacheRead|input|cacheCreation\",model=~\"$model\"}[7d])))",
           "legendFormat": "",
@@ -384,13 +420,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "quantile_over_time(0.95, {service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap duration_ms | __error__=\"\" [$__range]) by () / quantile_over_time(0.95, {service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap duration_ms | __error__=\"\" [7d]) by ()",
           "legendFormat": "",
@@ -454,13 +490,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "quantile_over_time(0.95, {service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap ttft_ms | __error__=\"\" [$__range]) by () / quantile_over_time(0.95, {service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap ttft_ms | __error__=\"\" [7d]) by ()",
           "legendFormat": "",
@@ -524,13 +560,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "(sum(sum_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap cost_usd | __error__=\"\" [$__range])) / sum(count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" [$__range]))) / (sum(sum_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap cost_usd | __error__=\"\" [7d])) / sum(count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" [7d])))",
           "legendFormat": "",
@@ -607,13 +643,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "last_over_time(claude_usage_utilization_ratio{limit=\"session\"}[15m])",
           "legendFormat": "",
@@ -678,13 +714,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "last_over_time(claude_usage_utilization_ratio{limit=\"session\"}[15m]) / clamp_min(1 - clamp_min(last_over_time(claude_usage_reset_timestamp_seconds{limit=\"session\"}[15m]) - time(), 0) / last_over_time(claude_usage_window_seconds{limit=\"session\"}[15m]), 0.1)",
           "legendFormat": "",
@@ -749,13 +785,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "clamp_min(last_over_time(claude_usage_reset_timestamp_seconds{limit=\"session\"}[15m]) - time(), 0)",
           "legendFormat": "",
@@ -804,13 +840,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "last_over_time(claude_usage_utilization_ratio{limit=\"weekly_all\"}[15m])",
           "legendFormat": "",
@@ -875,13 +911,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "last_over_time(claude_usage_utilization_ratio{limit=\"weekly_all\"}[15m]) / clamp_min(1 - clamp_min(last_over_time(claude_usage_reset_timestamp_seconds{limit=\"weekly_all\"}[15m]) - time(), 0) / last_over_time(claude_usage_window_seconds{limit=\"weekly_all\"}[15m]), 0.1)",
           "legendFormat": "",
@@ -946,13 +982,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "clamp_min(last_over_time(claude_usage_reset_timestamp_seconds{limit=\"weekly_all\"}[15m]) - time(), 0)",
           "legendFormat": "",
@@ -1001,13 +1037,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "last_over_time(claude_usage_utilization_ratio[15m])",
           "legendFormat": "{{limit}} {{scope}}",
@@ -1096,13 +1132,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "sort_desc(last_over_time(claude_usage_weekly_share_ratio[15m]))",
           "legendFormat": "{{source}}",
@@ -1171,13 +1207,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "last_over_time(claude_usage_utilization_ratio{limit=\"weekly_scoped\"}[15m])",
           "legendFormat": "{{scope}}",
@@ -1246,13 +1282,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "max by (plan, tier) (last_over_time(claude_usage_plan_info[15m]))",
           "legendFormat": "",
@@ -1389,13 +1425,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "sum(last_over_time(claude_usage_credits_used[15m]))",
           "legendFormat": "",
@@ -1444,13 +1480,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "max(last_over_time(claude_usage_credits_enabled[15m]))",
           "legendFormat": "",
@@ -1513,13 +1549,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "sum(last_over_time(claude_usage_allowance_used[15m]))",
           "legendFormat": "",
@@ -1568,13 +1604,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "sum(last_over_time(claude_usage_allowance_limit[15m]))",
           "legendFormat": "",
@@ -1623,13 +1659,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "time() - last_over_time(claude_usage_last_success_timestamp_seconds[1h])",
           "legendFormat": "",
@@ -1707,13 +1743,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "sum(max_over_time(claude_code_session_count_total{host_name=~\"$host\"}[$__range]))",
           "legendFormat": "",
@@ -1761,13 +1797,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "sum(count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"user_prompt\" [$__range]))",
           "legendFormat": "",
@@ -1814,13 +1850,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "sum(max_over_time(claude_code_active_time_seconds_total{host_name=~\"$host\"}[$__range]))",
           "legendFormat": "",
@@ -1869,13 +1905,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "sum(max_over_time(claude_code_cost_usage_USD_total{host_name=~\"$host\",model=~\"$model\"}[$__range]))",
           "legendFormat": "",
@@ -1924,13 +1960,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "sum(max_over_time(claude_code_token_usage_tokens_total{host_name=~\"$host\",model=~\"$model\"}[$__range]))",
           "legendFormat": "",
@@ -1978,13 +2014,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "sum(max_over_time(claude_code_cost_usage_USD_total{host_name=~\"$host\",model=~\"$model\"}[$__range])) / clamp_min(sum(max_over_time(claude_code_session_count_total{host_name=~\"$host\"}[$__range])), 1)",
           "legendFormat": "",
@@ -2033,13 +2069,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "sum(max_over_time(claude_code_token_usage_tokens_total{host_name=~\"$host\",type=\"cacheRead\",model=~\"$model\"}[$__range])) / clamp_min(sum(max_over_time(claude_code_token_usage_tokens_total{host_name=~\"$host\",type=~\"cacheRead|input|cacheCreation\",model=~\"$model\"}[$__range])), 1)",
           "legendFormat": "",
@@ -2104,13 +2140,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "sum(count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" [$__range]))",
           "legendFormat": "",
@@ -2157,13 +2193,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "quantile_over_time(0.95, {service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap duration_ms | __error__=\"\" [$__range]) by ()",
           "legendFormat": "",
@@ -2211,13 +2247,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "sum(count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"tool_result\" | success=\"true\" [$__range])) / sum(count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"tool_result\" [$__range]))",
           "legendFormat": "",
@@ -2281,13 +2317,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "sum(max_over_time(claude_code_lines_of_code_count_total{host_name=~\"$host\",model=~\"$model\"}[$__range]))",
           "legendFormat": "",
@@ -2335,13 +2371,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "sum(max_over_time(claude_code_commit_count_total{host_name=~\"$host\"}[$__range]))",
           "legendFormat": "",
@@ -2389,13 +2425,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "sum(max_over_time(claude_code_pull_request_count_total{host_name=~\"$host\"}[$__range]))",
           "legendFormat": "",
@@ -2456,13 +2492,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "(sum by (model) (sum_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap cost_usd | __error__=\"\" [$__auto]))) * 3600000 / $__interval_ms",
           "legendFormat": "{{model}}",
@@ -2604,13 +2640,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "(sum(sum_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap input_tokens | __error__=\"\" [$__auto]))) * 60000 / $__interval_ms",
           "legendFormat": "input",
@@ -2620,7 +2656,7 @@
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "(sum(sum_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap output_tokens | __error__=\"\" [$__auto]))) * 60000 / $__interval_ms",
           "legendFormat": "output",
@@ -2630,7 +2666,7 @@
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "(sum(sum_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap cache_read_tokens | __error__=\"\" [$__auto]))) * 60000 / $__interval_ms",
           "legendFormat": "cacheRead",
@@ -2640,7 +2676,7 @@
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "(sum(sum_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap cache_creation_tokens | __error__=\"\" [$__auto]))) * 60000 / $__interval_ms",
           "legendFormat": "cacheCreation",
@@ -2734,13 +2770,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "sort_desc(sum by (model) (max_over_time(claude_code_cost_usage_USD_total{host_name=~\"$host\",model=~\"$model\"}[$__range])))",
           "legendFormat": "{{model}}",
@@ -2884,13 +2920,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "sort_desc(sum by (query_source) (max_over_time(claude_code_cost_usage_USD_total{host_name=~\"$host\",model=~\"$model\"}[$__range])))",
           "legendFormat": "{{query_source}}",
@@ -2958,13 +2994,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "sort_desc(label_replace(sum by (effort) (max_over_time(claude_code_cost_usage_USD_total{host_name=~\"$host\",model=~\"$model\"}[$__range])), \"effort\", \"not set\", \"effort\", \"^$\"))",
           "legendFormat": "{{effort}}",
@@ -3032,13 +3068,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "sort_desc(sum by (type) (max_over_time(claude_code_token_usage_tokens_total{host_name=~\"$host\",model=~\"$model\"}[$__range])))",
           "legendFormat": "{{type}}",
@@ -3133,13 +3169,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "topk(10, sum by (session, user_email) (label_replace(max_over_time(claude_code_cost_usage_USD_total{host_name=~\"$host\",model=~\"$model\"}[$__range]), \"session\", \"$1\", \"session_id\", \"(.{8}).*\")))",
           "legendFormat": "",
@@ -3254,13 +3290,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "avg_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap cost_usd | __error__=\"\" [$__auto]) by (model)",
           "legendFormat": "{{model}}",
@@ -3402,13 +3438,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "sort_desc(sum by (agent_name) (max_over_time(claude_code_cost_usage_USD_total{host_name=~\"$host\",agent_name!=\"\",model=~\"$model\"}[$__range])))",
           "legendFormat": "{{agent_name}}",
@@ -3476,13 +3512,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "sort_desc(sum by (mcp_server_name) (max_over_time(claude_code_cost_usage_USD_total{host_name=~\"$host\",mcp_server_name!=\"\",model=~\"$model\"}[$__range])))",
           "legendFormat": "{{mcp_server_name}}",
@@ -3550,13 +3586,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "topk(5, sum by (mcp_server_name, mcp_tool_name) (max_over_time(claude_code_token_usage_tokens_total{host_name=~\"$host\",mcp_tool_name!=\"\",model=~\"$model\"}[$__range])))",
           "legendFormat": "{{mcp_server_name}} / {{mcp_tool_name}}",
@@ -3623,13 +3659,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "sort_desc(sum by (service_version) (max_over_time(claude_code_cost_usage_USD_total{host_name=~\"$host\",model=~\"$model\"}[$__range])))",
           "legendFormat": "{{service_version}}",
@@ -3697,13 +3733,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "sort_desc(sum by (host_name) (max_over_time(claude_code_cost_usage_USD_total{host_name=~\"$host\",model=~\"$model\"}[$__range])))",
           "legendFormat": "{{host_name}}",
@@ -3771,13 +3807,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "sum by (host_name) (count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" [$__range]))",
           "legendFormat": "{{host_name}}",
@@ -3856,13 +3892,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "sum by (type) (max_over_time(claude_code_lines_of_code_count_total{host_name=~\"$host\",model=~\"$model\"}[$__range]))",
           "legendFormat": "{{type}}",
@@ -3929,13 +3965,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "sum by (tool_name, decision) (max_over_time(claude_code_code_edit_tool_decision_total{host_name=~\"$host\"}[$__range]))",
           "legendFormat": "{{tool_name}} / {{decision}}",
@@ -4002,13 +4038,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "sort_desc(sum by (language) (max_over_time(claude_code_code_edit_tool_decision_total{host_name=~\"$host\"}[$__range])))",
           "legendFormat": "{{language}}",
@@ -4075,13 +4111,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "sum(max_over_time(claude_code_code_edit_tool_decision_total{host_name=~\"$host\",decision=\"accept\"}[$__range])) / sum(max_over_time(claude_code_code_edit_tool_decision_total{host_name=~\"$host\"}[$__range]))",
           "legendFormat": "",
@@ -4146,13 +4182,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "(sum(count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"user_prompt\" [$__auto]))) * 3600000 / $__interval_ms",
           "legendFormat": "prompts",
@@ -4218,13 +4254,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "sum by (type) (rate(claude_code_active_time_seconds_total{host_name=~\"$host\"}[$__rate_interval]))",
           "legendFormat": "{{type}}",
@@ -4305,13 +4341,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "(sum by (start_type) (claude_code_session_count_total{host_name=~\"$host\"} unless claude_code_session_count_total{host_name=~\"$host\"} offset $__interval)) * 3600000 / $__interval_ms",
           "legendFormat": "{{start_type}}",
@@ -4391,13 +4427,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "quantile_over_time(0.5, {service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap duration_ms | __error__=\"\" [$__auto]) by (model)",
           "legendFormat": "p50 {{model}}",
@@ -4407,7 +4443,7 @@
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "quantile_over_time(0.95, {service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap duration_ms | __error__=\"\" [$__auto]) by (model)",
           "legendFormat": "p95 {{model}}",
@@ -4417,7 +4453,7 @@
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "quantile_over_time(0.95, {service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap duration_ms | __error__=\"\" [7d]) by ()",
           "legendFormat": "usual p95 (7 d)",
@@ -4427,7 +4463,7 @@
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "1.5 * quantile_over_time(0.95, {service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap duration_ms | __error__=\"\" [7d]) by ()",
           "legendFormat": "1.5x usual p95",
@@ -4754,13 +4790,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "quantile_over_time(0.5, {service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap ttft_ms | __error__=\"\" [$__auto]) by (model)",
           "legendFormat": "p50 {{model}}",
@@ -4770,7 +4806,7 @@
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "quantile_over_time(0.95, {service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap ttft_ms | __error__=\"\" [$__auto]) by (model)",
           "legendFormat": "p95 {{model}}",
@@ -4780,7 +4816,7 @@
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "quantile_over_time(0.95, {service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap ttft_ms | __error__=\"\" [7d]) by ()",
           "legendFormat": "usual p95 (7 d)",
@@ -4790,7 +4826,7 @@
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "1.5 * quantile_over_time(0.95, {service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap ttft_ms | __error__=\"\" [7d]) by ()",
           "legendFormat": "1.5x usual p95",
@@ -5117,13 +5153,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "(sum by (model) (count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" [$__auto]))) * 60000 / $__interval_ms",
           "legendFormat": "{{model}}",
@@ -5265,13 +5301,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "avg_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap output_tokens | __error__=\"\" [$__auto]) by (model)",
           "legendFormat": "{{model}}",
@@ -5412,13 +5448,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "avg_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap cache_read_tokens | __error__=\"\" [$__auto]) by (model)",
           "legendFormat": "{{model}}",
@@ -5559,13 +5595,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "sum by (effort, speed) (count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" [$__range]))",
           "legendFormat": "",
@@ -5667,13 +5703,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "(sum by (status_code, model) (count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_error\" [$__auto]))) * 3600000 / $__interval_ms",
           "legendFormat": "HTTP {{status_code}} {{model}}",
@@ -5683,7 +5719,7 @@
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "(sum by (model) (count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_retries_exhausted\" [$__auto]))) * 3600000 / $__interval_ms",
           "legendFormat": "retries exhausted {{model}}",
@@ -5838,13 +5874,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "(sum by (tool_name) (count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"tool_result\" [$__auto]))) * 60000 / $__interval_ms",
           "legendFormat": "{{tool_name}}",
@@ -5910,13 +5946,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "quantile_over_time(0.95, {service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"tool_result\" | unwrap duration_ms | __error__=\"\" [$__auto]) by (tool_name)",
           "legendFormat": "{{tool_name}}",
@@ -5982,13 +6018,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "(sum by (tool_name, error_type) (count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"tool_result\" | success=\"false\" [$__auto]))) * 3600000 / $__interval_ms",
           "legendFormat": "{{tool_name}}: {{error_type}}",
@@ -6054,13 +6090,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "(sum by (decision, source) (count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"tool_decision\" [$__auto]))) * 60000 / $__interval_ms",
           "legendFormat": "{{decision}} ({{source}})",
@@ -6147,13 +6183,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "sum by (permission_mode, classifier_verdict) (count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"tool_decision\" [$__range]))",
           "legendFormat": "",
@@ -6294,13 +6330,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "quantile_over_time(0.95, {service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"tool_result\" | unwrap tool_result_size_bytes | __error__=\"\" [$__auto]) by (tool_name)",
           "legendFormat": "{{tool_name}}",
@@ -6366,13 +6402,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "sum by (status, transport_type, error_code) (count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"mcp_server_connection\" [$__range]))",
           "legendFormat": "",
@@ -6482,13 +6518,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "sum by (skill_name, invocation_trigger) (count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"skill_activated\" [$__range]))",
           "legendFormat": "",
@@ -6590,13 +6626,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "sum by (command_name) (count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"user_prompt\" | command_name!=\"\" [$__range]))",
           "legendFormat": "",
@@ -6709,13 +6745,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "sum by (agent_type, model) (count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"subagent_completed\" [$__range]))",
           "legendFormat": "",
@@ -6839,13 +6875,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "avg_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"subagent_completed\" | unwrap duration_ms | __error__=\"\" [$__auto]) by (agent_type)",
           "legendFormat": "{{agent_type}}",
@@ -6911,13 +6947,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "avg_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"subagent_completed\" | unwrap total_tokens | __error__=\"\" [$__auto]) by (agent_type)",
           "legendFormat": "{{agent_type}}",
@@ -6995,13 +7031,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "sum(count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"hook_execution_complete\" [$__range])) or vector(0)",
           "legendFormat": "",
@@ -7048,13 +7084,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "(sum(sum_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"hook_execution_complete\" | unwrap num_blocking | __error__=\"\" [$__range])) or vector(0)) + (sum(sum_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"hook_execution_complete\" | unwrap num_non_blocking_error | __error__=\"\" [$__range])) or vector(0))",
           "legendFormat": "",
@@ -7113,13 +7149,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "(sum by (hook_event) (count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"hook_execution_complete\" [$__auto]))) * 60000 / $__interval_ms",
           "legendFormat": "{{hook_event}}",
@@ -7185,13 +7221,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "quantile_over_time(0.95, {service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"hook_execution_complete\" | unwrap total_duration_ms | __error__=\"\" [$__auto]) by (hook_name)",
           "legendFormat": "{{hook_name}}",
@@ -7257,13 +7293,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "sum by (hook_name) (count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"hook_execution_complete\" [$__range]))",
           "legendFormat": "",
@@ -7363,13 +7399,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "sum(count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"compaction\" [$__range])) or vector(0)",
           "legendFormat": "",
@@ -7416,13 +7452,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "1 - sum(sum_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"compaction\" | unwrap post_tokens | __error__=\"\" [$__range])) / sum(sum_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"compaction\" | unwrap pre_tokens | __error__=\"\" [$__range]))",
           "legendFormat": "",
@@ -7470,13 +7506,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "avg_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"compaction\" | unwrap pre_tokens | __error__=\"\" [$__auto]) by (trigger)",
           "legendFormat": "before ({{trigger}})",
@@ -7486,7 +7522,7 @@
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "avg_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"compaction\" | unwrap post_tokens | __error__=\"\" [$__auto]) by (trigger)",
           "legendFormat": "after ({{trigger}})",
@@ -7551,13 +7587,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "avg_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"compaction\" | unwrap duration_ms | __error__=\"\" [$__auto]) by (trigger)",
           "legendFormat": "{{trigger}}",
@@ -7623,13 +7659,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "sum by (trigger, success) (count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"compaction\" [$__range]))",
           "legendFormat": "",
@@ -7783,13 +7819,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "sum by (span_name) (rate(traces_spanmetrics_calls_total{service=\"claude-code\"}[$__rate_interval]))",
           "legendFormat": "{{span_name}}",
@@ -7877,13 +7913,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "histogram_quantile(0.95, sum by (le, span_name) (rate(traces_spanmetrics_latency_bucket{service=\"claude-code\"}[$__rate_interval])))",
           "legendFormat": "{{span_name}}",
@@ -7971,13 +8007,13 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${ds_prometheus}"
       },
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${ds_prometheus}"
           },
           "expr": "(sum by (span_name) (rate(traces_spanmetrics_calls_total{service=\"claude-code\", status_code=\"STATUS_CODE_ERROR\"}[$__rate_interval]))) * 3600000 / 1000",
           "legendFormat": "{{span_name}}",
@@ -8065,14 +8101,14 @@
       },
       "datasource": {
         "type": "tempo",
-        "uid": "tempo"
+        "uid": "${ds_tempo}"
       },
       "targets": [
         {
           "refId": "A",
           "datasource": {
             "type": "tempo",
-            "uid": "tempo"
+            "uid": "${ds_tempo}"
           },
           "queryType": "traceql",
           "limit": 30,
@@ -8132,14 +8168,14 @@
       },
       "datasource": {
         "type": "tempo",
-        "uid": "tempo"
+        "uid": "${ds_tempo}"
       },
       "targets": [
         {
           "refId": "A",
           "datasource": {
             "type": "tempo",
-            "uid": "tempo"
+            "uid": "${ds_tempo}"
           },
           "queryType": "traceql",
           "limit": 30,
@@ -8254,14 +8290,14 @@
       },
       "datasource": {
         "type": "tempo",
-        "uid": "tempo"
+        "uid": "${ds_tempo}"
       },
       "targets": [
         {
           "refId": "A",
           "datasource": {
             "type": "tempo",
-            "uid": "tempo"
+            "uid": "${ds_tempo}"
           },
           "queryType": "traceql",
           "limit": 30,
@@ -8387,13 +8423,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "(sum by (event_name) (count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name!=\"plugin_loaded\" [$__auto]))) * 60000 / $__interval_ms",
           "legendFormat": "{{event_name}}",
@@ -8466,13 +8502,13 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "expr": "sum by (plugin_name, plugin_scope, marketplace_name) (count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"plugin_loaded\" [$__range]))",
           "legendFormat": "",
@@ -8580,14 +8616,14 @@
       },
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${ds_loki}"
       },
       "targets": [
         {
           "refId": "A",
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${ds_loki}"
           },
           "queryType": "range",
           "expr": "{service_name=\"claude-code\"} | host_name=~\"$host\" | event_name!=\"plugin_loaded\" | line_format `{{ .event_name }}{{ with .tool_name }}  {{ . }}{{ end }}{{ with .hook_name }}  {{ . }}{{ end }}{{ with .command_name }}  /{{ . }}{{ end }}{{ with .agent_type }}  {{ . }}{{ end }}{{ with .model }}  {{ regexReplaceAll \"-[0-9]{8}$\" (regexReplaceAll \"^claude-\" . \"\") \"\" }}{{ end }}{{ with .decision }}  {{ . }}{{ end }}{{ with .status }}  {{ . }}{{ end }}{{ with .trigger }}  {{ . }}{{ end }}{{ with .duration_ms }}  {{ . }} ms{{ end }}{{ with .total_duration_ms }}  {{ . }} ms{{ end }}{{ if eq .success \"false\" }}  FAILED{{ end }}`"
