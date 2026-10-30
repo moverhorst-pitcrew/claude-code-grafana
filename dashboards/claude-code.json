@@ -6191,7 +6191,7 @@
       "gridPos": {
         "x": 0,
         "y": 117,
-        "w": 12,
+        "w": 10,
         "h": 8
       },
       "datasource": {
@@ -6305,9 +6305,9 @@
       "title": "Skills activated",
       "description": "Skills loaded, and whether you or Claude triggered them.",
       "gridPos": {
-        "x": 12,
+        "x": 10,
         "y": 117,
-        "w": 6,
+        "w": 8,
         "h": 8
       },
       "datasource": {

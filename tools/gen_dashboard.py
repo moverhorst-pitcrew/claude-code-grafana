@@ -538,7 +538,7 @@ panels += [
 ]
 y += 8
 panels += [
-    table("MCP server connections", LOKI, cnt("mcp_server_connection", "status, transport_type, error_code"), 0, y, 12, 8,
+    table("MCP server connections", LOKI, cnt("mcp_server_connection", "status, transport_type, error_code"), 0, y, 10, 8,
           order=["status", "Value #A", "transport_type", "error_code"],
           rename={"status": "Status", "Value #A": "Count", "transport_type": "Transport", "error_code": "Error code"},
           desc="mcp_server_connection events in the range. 'failed' means a configured server did not start; the error code says why (e.g. an HTTP status).",
@@ -549,7 +549,7 @@ panels += [
                                          "disconnected": {"color": "orange", "index": 2}}}]}]},
                      {"matcher": {"id": "byName", "options": "Error code"}, "properties": [{"id": "noValue", "value": "-"}]}]),
     count_table("Skills activated", cnt("skill_activated", "skill_name, invocation_trigger"),
-                [("skill_name", "Skill"), ("invocation_trigger", "Triggered by")], 12, y, 6, 8,
+                [("skill_name", "Skill"), ("invocation_trigger", "Triggered by")], 10, y, 8, 8,
                 desc="Skills loaded, and whether you or Claude triggered them."),
     count_table("Slash commands used", cnt("user_prompt", "command_name", ' | command_name!=""'),
                 [("command_name", "Command")], 18, y, 6, 8,
