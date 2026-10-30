@@ -161,7 +161,7 @@ def main():
     try:
         meta = creds()
         tok = meta["accessToken"]
-    except Exception as e:
+    except Exception:
         failure(out, "no-credentials")
         tok = None
     if tok:

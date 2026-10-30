@@ -1,0 +1,7 @@
+line-length = 160
+target-version = "py39"
+
+[lint]
+select = ["E", "F", "W", "B"]
+# One-line imports and long query strings are deliberate in these scripts.
+ignore = ["E401", "E501", "E701", "E702", "E731", "E741"]
