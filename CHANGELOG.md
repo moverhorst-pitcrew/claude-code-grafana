@@ -7,7 +7,7 @@ the project uses [Semantic Versioning](https://semver.org/). Upgrade notes are i
 
 ### Added
 - `docker-compose.yml` for Docker users (macOS, Windows, Linux), with the usage poller as an opt-in profile.
-- Unit tests (standard library only) and CI: tests on Python 3.11 and 3.13, ruff, yamllint, shellcheck, and a check
+- Unit tests (standard library only) and CI: tests on Python 3.11 and 3.15, ruff, yamllint, shellcheck, and a check
   that `dashboards/claude-code.json` matches the generator.
 - The dashboard JSON is attached to every GitHub release for import into any Grafana.
 - Documentation: telemetry reference, FAQ and upgrade notes in `docs/`; `SECURITY.md`, `CONTRIBUTING.md`, code of
@@ -17,6 +17,7 @@ the project uses [Semantic Versioning](https://semver.org/). Upgrade notes are i
 - The dashboard uses datasource variables (`ds_prometheus`, `ds_loki`, `ds_tempo`) instead of fixed ids, so it imports
   into any Grafana.
 - `grafana/otel-lgtm` is pinned to 0.39.0 (Grafana 13.3) instead of `latest`.
+- The compose poller runs on `python:3.15-alpine`; CI tests on Python 3.11 and 3.15 and uses `actions/checkout` and `actions/setup-python` v7.
 
 ### Fixed
 - The usage poller backs off 2, 4, 8, then 10 minutes after a rate limit, as documented (it started at 1 minute), and
