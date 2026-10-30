@@ -32,7 +32,8 @@ STATE = os.path.join(os.environ.get("STATE_DIRECTORY") or os.path.expanduser("~/
 
 def _state():
     try:
-        d = json.load(open(STATE))
+        with open(STATE) as f:
+            d = json.load(f)
         return d if isinstance(d, dict) else {}
     except Exception:
         return {}
@@ -41,7 +42,8 @@ def _state():
 def _save(until, fails):
     try:
         os.makedirs(os.path.dirname(STATE), exist_ok=True)
-        json.dump({"until": until, "fails": fails}, open(STATE, "w"))
+        with open(STATE, "w") as f:
+            json.dump({"until": until, "fails": fails}, f)
     except OSError:
         pass
 
