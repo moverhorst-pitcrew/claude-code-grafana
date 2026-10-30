@@ -1,0 +1,62 @@
+# Fires when the usage poller has not had a successful poll in 10 minutes (it is rate limited,
+# the login token expired, or it stopped running). See "Subscription limits" in the main README
+# and the "Usage data age" tile.
+#
+# Adjust before use:
+# - datasourceUid: the uid of your Prometheus datasource (Dashboard settings > JSON Model
+#   on the imported dashboard, or Connections > Data sources).
+# - the 600 (seconds) threshold in the "C" query.
+# - add a notification policy or a label here that routes to your contact point; this file
+#   intentionally has none.
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: usage-poller-stale
+    folder: Claude Code
+    interval: 1m
+    rules:
+      - uid: claude-usage-poller-stale
+        title: Usage poller stale for 10 minutes
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: prometheus
+            model:
+              refId: A
+              expr: time() - claude_usage_last_success_timestamp_seconds
+              instant: true
+          - refId: B
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: "__expr__"
+            model:
+              refId: B
+              type: reduce
+              expression: A
+              reducer: last
+          - refId: C
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: "__expr__"
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [600]
+        noDataState: Alerting
+        execErrState: Error
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: The Claude Code usage poller has not reported in over 10 minutes
+          description: "Last successful poll was {{ $values.A.Value }} seconds ago."

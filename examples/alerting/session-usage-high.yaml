@@ -1,0 +1,61 @@
+# Fires when the current 5-hour usage window is above 90%.
+# Needs the usage poller (--usage-poller); see "Subscription limits" in the main README.
+#
+# Adjust before use:
+# - datasourceUid: the uid of your Prometheus datasource (Dashboard settings > JSON Model
+#   on the imported dashboard, or Connections > Data sources).
+# - the 0.9 threshold in the "C" query.
+# - add a notification policy or a label here that routes to your contact point; this file
+#   intentionally has none.
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: session-usage-high
+    folder: Claude Code
+    interval: 2m
+    rules:
+      - uid: claude-session-usage-high
+        title: 5-hour usage above 90%
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: prometheus
+            model:
+              refId: A
+              expr: claude_usage_utilization_ratio{limit="session"}
+              instant: true
+          - refId: B
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: "__expr__"
+            model:
+              refId: B
+              type: reduce
+              expression: A
+              reducer: last
+          - refId: C
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: "__expr__"
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [0.9]
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 5-hour Claude Code usage is above 90%
+          description: "5-hour usage ratio is {{ $values.A.Value }} (1.0 = the full 5-hour limit)."
