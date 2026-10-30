@@ -225,6 +225,11 @@ L = '{service_name="claude-code"}'
 RNG = "$__range"
 
 
+MCP_FAILED = ' | status="failed"'
+TOOL_OK = ' | success="true"'
+TOOL_FAILED = ' | success="false"'
+
+
 def ev(name, extra=""):
     return f'{L} | event_name="{name}"{extra}'
 
@@ -301,7 +306,7 @@ BASELINE_LINES = [
 panels += [
     stat("API errors", f'sum(count_over_time({ev("api_error")} [{RNG}])) or vector(0)', "short", 0, y, 6, 4, ds=LOKI, bg=True, steps=ANY,
          desc="api_error events in the range. A healthy API has none, so any error is flagged."),
-    stat("Failed MCP servers", f'sum(count_over_time({ev("mcp_server_connection", " | status=\"failed\"")} [{RNG}])) or vector(0)', "short",
+    stat("Failed MCP servers", f'sum(count_over_time({ev("mcp_server_connection", MCP_FAILED)} [{RNG}])) or vector(0)', "short",
          6, y, 6, 4, ds=LOKI, bg=True, steps=ANY, desc="MCP servers that failed to connect (per session start). A healthy setup has none."),
     stat("Tool failure rate vs usual",
          f'((({tool_n(RNG, True)} + 1) / ({tool_n(RNG)} + 2)) / (({tool_n(BASE, True)} + 1) / ({tool_n(BASE)} + 2)))',
@@ -406,7 +411,7 @@ panels += [
     stat("API p95 latency", f'quantile_over_time(0.95, {ev("api_request")} | unwrap duration_ms | __error__="" [{RNG}]) by ()',
          "ms", 7, y, ds=LOKI, color="orange", desc="p95 request duration across all models."),
     stat("Tool success rate",
-         f'sum(count_over_time({ev("tool_result", " | success=\"true\"")} [{RNG}])) / sum(count_over_time({ev("tool_result")} [{RNG}]))',
+         f'sum(count_over_time({ev("tool_result", TOOL_OK)} [{RNG}])) / sum(count_over_time({ev("tool_result")} [{RNG}]))',
          "percentunit", 11, y, ds=LOKI, desc="Share of tool calls that succeeded."),
     stat("Lines", f"sum(max_over_time({LOC}{M}[{RNG}]))", "short", 15, y, w=3, color="blue", desc="Lines added + removed by Claude's edits."),
     stat("Commits", f"sum(max_over_time({COM}[{RNG}]))", "short", 18, y, w=3, color="blue"),
@@ -531,7 +536,7 @@ panels += [
        stack=True, bars=True),
     ts("Tool duration p95 by tool", [(lq("", "tool_result", unwrap="duration_ms", by="tool_name", q=0.95), "{{tool_name}}")], "ms", 8, y, 8, 8, ds=LOKI),
     ts("Tool failures by tool and error",
-       [(f'sum by (tool_name, error_type) (count_over_time({ev("tool_result", " | success=\"false\"")} [$__auto]))', "{{tool_name}}: {{error_type}}")],
+       [(f'sum by (tool_name, error_type) (count_over_time({ev("tool_result", TOOL_FAILED)} [$__auto]))', "{{tool_name}}: {{error_type}}")],
        "short", 16, y, 8, 8, ds=LOKI, stack=True, bars=True, desc="tool_result events with success=false."),
 ]
 y += 8
