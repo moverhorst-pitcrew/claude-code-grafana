@@ -8,6 +8,8 @@ A local Grafana dashboard for Claude Code's OpenTelemetry data: cost and tokens,
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Runs on](https://img.shields.io/badge/runs%20on-Podman%20%2B%20systemd-8A2BE2)
 ![Localhost only](https://img.shields.io/badge/network-localhost%20only-2ea44f)
+[![Stars](https://img.shields.io/github/stars/moverhorst-pitcrew/claude-code-grafana?style=flat)](https://github.com/moverhorst-pitcrew/claude-code-grafana/stargazers)
+[![Last commit](https://img.shields.io/github/last-commit/moverhorst-pitcrew/claude-code-grafana)](https://github.com/moverhorst-pitcrew/claude-code-grafana/commits/main)
 
 <img src="docs/screenshots/01-health-and-subscription.jpg" alt="Health tiles and subscription limits" width="900">
 
@@ -23,6 +25,7 @@ A local Grafana dashboard for Claude Code's OpenTelemetry data: cost and tokens,
 - **Tools, permissions and MCP.** Which tools run, how long they take, what fails, what gets approved or blocked, MCP server status and errors, skills, slash commands and plugins.
 - **Subagents, hooks and compaction.** What subagents cost, which hooks are slow or blocking, and how often the context was compacted and how much it shrank.
 - **Trace waterfalls.** Click any interaction and see every LLM request and tool call on a timeline, including how long a tool *waited for your permission* versus how long it *ran*.
+- **Several machines or containers.** Tag each Claude Code install with a host name and filter or compare them with the *Host* variable and the cost-by-host panels (works for a laptop plus agents running in Docker).
 - **Subscription limits** (opt-in). 5-hour and weekly usage, resets, and a *pace* tile that warns when you are on course to hit a limit before it resets.
 - **Easy to read.** Short names instead of raw identifiers (`opus-5`, "Cache read"), one colour per model on every chart, rates instead of raw counts so charts read the same at 15 minutes or 7 days, and a clear "none in this range" when there is nothing to show.
 
