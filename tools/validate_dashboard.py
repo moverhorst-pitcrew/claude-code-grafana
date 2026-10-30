@@ -44,3 +44,4 @@ for p in d["panels"]:
         if not ok: bad += 1
         print(f"{flag} {str(n):>4} {time.time() - t0:5.1f}s  [{ds[:4]}] {p['title'][:48]}" + ("" if ok else f"\n      {n}"))
 print("FAILED:", bad)
+sys.exit(1 if bad else 0)

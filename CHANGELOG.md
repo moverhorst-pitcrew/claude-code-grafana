@@ -3,6 +3,15 @@
 All notable changes to this project. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the project uses [Semantic Versioning](https://semver.org/). Upgrade notes are in [docs/upgrading.md](docs/upgrading.md).
 
+## [Unreleased]
+
+### Added
+- `tools/send_sample_telemetry.py` and a CI job that start the stack with `docker compose up -d`, send it, and run
+  `tools/validate_dashboard.py` against the result, so a query that errors against a live Grafana fails CI.
+
+### Fixed
+- `tools/validate_dashboard.py` now exits non-zero when a query fails; it used to print `FAILED: N` but still exit 0.
+
 ## [1.1.0] - 2026-10-30
 
 ### Added
