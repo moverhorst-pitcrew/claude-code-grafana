@@ -166,7 +166,7 @@ docker run -d --name otel-lgtm --restart unless-stopped \
   -v "$HOME/.local/share/otel-lgtm:/data" \
   -v "$PWD/provisioning/grafana-dashboards.yaml:/otel-lgtm/grafana/conf/provisioning/dashboards/grafana-dashboards.yaml:ro" \
   -v "$PWD/dashboards:/claude-dashboards:ro" \
-  docker.io/grafana/otel-lgtm
+  docker.io/grafana/otel-lgtm:0.39.0
 python3 claude/apply-claude-settings.py        # point Claude Code at it
 # also sets OTEL_RESOURCE_ATTRIBUTES=host.name=<hostname>; override with CLAUDE_HOST_NAME=laptop python3 claude/apply-claude-settings.py
 ```
@@ -217,7 +217,7 @@ Data lives in `~/.local/share/otel-lgtm`; delete that folder to wipe all stored 
 
 ## Compatibility
 
-Tested with Claude Code 2.1.314, `grafana/otel-lgtm` 0.38.1 (Grafana 13), Podman 5.7 and Ubuntu 26.04. Other Claude Code versions may rename metrics, events or fields. Issues and pull requests are welcome, especially reports from other versions or distributions.
+Tested with Claude Code 2.1.314, `grafana/otel-lgtm` 0.39.0 (Grafana 13.3), Podman 5.7 and Ubuntu 26.04. Other Claude Code versions may rename metrics, events or fields. Issues and pull requests are welcome, especially reports from other versions or distributions.
 
 ## License
 

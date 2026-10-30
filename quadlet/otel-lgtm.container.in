@@ -7,9 +7,9 @@ After=network-online.target
 
 [Container]
 ContainerName=otel-lgtm
-# Tested with otel-lgtm 0.38.1 (sha256:83c5fa20f19e4d6c39903c59330fa7a1a4d1f7c14aea9dc932787d97e711a06a).
-# To pin exactly, replace the next line with: Image=docker.io/grafana/otel-lgtm@sha256:83c5fa20f19e4d6c39903c59330fa7a1a4d1f7c14aea9dc932787d97e711a06a
-Image=docker.io/grafana/otel-lgtm:latest
+# Pinned to a tested release (tag plus the multi-arch index digest, which wins if they ever disagree).
+# To upgrade: bump both, run tools/validate_dashboard.py, and update the Compatibility line in the README.
+Image=docker.io/grafana/otel-lgtm:0.39.0@sha256:4c8056c9c05fcb3c8fd93800e85334bfd79b4d0271b47a54a121a64af41fe1fe
 # Localhost only: nothing here is reachable from the network.
 PublishPort=127.0.0.1:3000:3000
 PublishPort=127.0.0.1:4317:4317
