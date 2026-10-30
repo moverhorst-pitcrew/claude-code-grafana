@@ -46,7 +46,7 @@ if (( uninstall )); then
   rm -f "$quadlet_dir/otel-lgtm.container"
   systemctl --user daemon-reload
   echo "Removed the services. Data is kept in $data_dir (delete it to wipe all stored telemetry)."
-  echo "Claude Code settings are untouched; run  python3 claude/apply-claude-settings.py --remove  to undo them."
+  echo "Claude Code settings are untouched; run  python3 claude-settings/apply-claude-settings.py --remove  to undo them."
   exit 0
 fi
 
@@ -103,7 +103,7 @@ if (( ! ready )); then
 fi
 
 # ---- optional parts ---------------------------------------------------------------------------------------------
-if (( claude_settings )); then python3 "$here/claude/apply-claude-settings.py"; fi
+if (( claude_settings )); then python3 "$here/claude-settings/apply-claude-settings.py"; fi
 
 if (( usage_poller )); then
   sed "s|@SETUP_DIR@|$here|g" "$here/usage-poller/claude-usage-poller.service.in" > "$unit_dir/claude-usage-poller.service"

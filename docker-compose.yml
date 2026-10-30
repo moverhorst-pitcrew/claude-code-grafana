@@ -3,7 +3,7 @@
 #   docker compose up -d                         Grafana + Loki + Tempo + Prometheus + collector
 #   docker compose --profile usage-poller up -d  also the optional subscription usage poller
 #
-# Then point Claude Code at it:  python3 claude/apply-claude-settings.py
+# Then point Claude Code at it:  python3 claude-settings/apply-claude-settings.py
 # Everything listens on localhost only. Grafana: http://127.0.0.1:3000  (admin / admin, change it on first login)
 
 services:

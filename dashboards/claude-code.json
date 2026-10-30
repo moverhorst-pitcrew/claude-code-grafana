@@ -3724,7 +3724,7 @@
       "id": 52,
       "type": "bargauge",
       "title": "Cost by host",
-      "description": "Cost per machine. Needs OTEL_RESOURCE_ATTRIBUTES=host.name=<name> on each Claude Code install (claude/apply-claude-settings.py sets it); data from before that shows as one unnamed host.",
+      "description": "Cost per machine. Needs OTEL_RESOURCE_ATTRIBUTES=host.name=<name> on each Claude Code install (claude-settings/apply-claude-settings.py sets it); data from before that shows as one unnamed host.",
       "gridPos": {
         "x": 0,
         "y": 67,

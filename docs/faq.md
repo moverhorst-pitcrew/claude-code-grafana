@@ -15,7 +15,7 @@ README.
 ## Can I watch several machines or containers in one dashboard?
 
 Yes. Point each Claude Code at the same OTLP endpoint and give each a name with
-`OTEL_RESOURCE_ATTRIBUTES=host.name=<name>` (`claude/apply-claude-settings.py` does this, or set it by hand in a
+`OTEL_RESOURCE_ATTRIBUTES=host.name=<name>` (`claude-settings/apply-claude-settings.py` does this, or set it by hand in a
 container's `settings.json`). Then use the *Host* variable and the "by host" panels. Sessions that started before the
 setting have no host and show only under *All*.
 

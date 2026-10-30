@@ -474,7 +474,7 @@ y += 8
 panels += [
     bargauge("Cost by host", f"sort_desc(sum by (host_name) (max_over_time({COST}{M}[{RNG}])))", "currencyUSD", 0, y, w=12, h=7,
              legend="{{host_name}}", desc="Cost per machine. Needs OTEL_RESOURCE_ATTRIBUTES=host.name=<name> on each Claude Code install "
-             "(claude/apply-claude-settings.py sets it); data from before that shows as one unnamed host."),
+             "(claude-settings/apply-claude-settings.py sets it); data from before that shows as one unnamed host."),
     bargauge("Requests by host", cnt("api_request", "host_name"), "short", 12, y, w=12, h=7, ds=LOKI,
              legend="{{host_name}}", desc="API requests per machine in the selected range."),
 ]

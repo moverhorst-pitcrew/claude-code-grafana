@@ -7,7 +7,7 @@ import unittest
 
 from tests.helpers import ROOT
 
-SCRIPT = os.path.join(ROOT, "claude", "apply-claude-settings.py")
+SCRIPT = os.path.join(ROOT, "claude-settings", "apply-claude-settings.py")
 
 
 class ApplySettings(unittest.TestCase):

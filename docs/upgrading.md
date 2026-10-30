@@ -28,5 +28,5 @@ Edits you made to the dashboard in the Grafana UI are overwritten by the file. C
   at the top level, change the dashboard file (any edit) so Grafana re-saves it.
 
 ### 1.0.0
-- First tagged release. Adds the *Host* variable and the "by host" panels. Run `claude/apply-claude-settings.py` on each
+- First tagged release. Adds the *Host* variable and the "by host" panels. Run `claude-settings/apply-claude-settings.py` on each
   machine (or set `OTEL_RESOURCE_ATTRIBUTES=host.name=<name>`) to name it.
