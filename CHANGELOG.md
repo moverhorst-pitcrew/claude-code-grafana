@@ -7,7 +7,7 @@ the project uses [Semantic Versioning](https://semver.org/). Upgrade notes are i
 
 ### Added
 - `docker-compose.yml` for Docker users (macOS, Windows, Linux), with the usage poller as an opt-in profile.
-- Unit tests (standard library only) and CI: tests on Python 3.9 and 3.13, ruff, yamllint, shellcheck, and a check
+- Unit tests (standard library only) and CI: tests on Python 3.11 and 3.13, ruff, yamllint, shellcheck, and a check
   that `dashboards/claude-code.json` matches the generator.
 - The dashboard JSON is attached to every GitHub release for import into any Grafana.
 - Documentation: telemetry reference, FAQ and upgrade notes in `docs/`; `SECURITY.md`, `CONTRIBUTING.md`, code of
