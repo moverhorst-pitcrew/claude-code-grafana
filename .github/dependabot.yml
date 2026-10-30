@@ -1,0 +1,11 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+  # docker-compose.yml: the otel-lgtm and python images
+  - package-ecosystem: docker-compose
+    directory: /
+    schedule:
+      interval: weekly
