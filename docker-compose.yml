@@ -1,0 +1,49 @@
+# Docker / Docker Compose alternative to the Podman + systemd installer (macOS, Windows, or any Linux with Docker).
+#
+#   docker compose up -d                         Grafana + Loki + Tempo + Prometheus + collector
+#   docker compose --profile usage-poller up -d  also the optional subscription usage poller
+#
+# Then point Claude Code at it:  python3 claude/apply-claude-settings.py
+# Everything listens on localhost only. Grafana: http://127.0.0.1:3000  (admin / admin, change it on first login)
+
+services:
+  otel-lgtm:
+    # Pinned to a tested release; bump the tag, run tools/validate_dashboard.py, and update the README Compatibility line.
+    image: grafana/otel-lgtm:0.39.0
+    container_name: otel-lgtm
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"   # Grafana
+      - "127.0.0.1:4317:4317"   # OTLP gRPC (Claude Code exports here)
+      - "127.0.0.1:4318:4318"   # OTLP HTTP
+    environment:
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /claude-dashboards/claude-code.json
+    volumes:
+      - otel-lgtm-data:/data
+      - ./provisioning/grafana-dashboards.yaml:/otel-lgtm/grafana/conf/provisioning/dashboards/grafana-dashboards.yaml:ro
+      - ./dashboards:/claude-dashboards:ro
+
+  # Optional and off by default: it reads your Claude Code login token and calls an undocumented endpoint.
+  # See the README, "Subscription limits". On Windows set CLAUDE_CONFIG_DIR (for example C:/Users/you/.claude).
+  claude-usage-poller:
+    profiles: [usage-poller]
+    image: python:3.13-alpine
+    container_name: claude-usage-poller
+    restart: unless-stopped
+    mem_limit: 128m
+    depends_on:
+      - otel-lgtm
+    environment:
+      CLAUDE_CONFIG_DIR: /host-claude
+      STATE_DIRECTORY: /run/poller
+      CLAUDE_USAGE_OTLP_URL: http://otel-lgtm:4318/v1/metrics
+    volumes:
+      - ${CLAUDE_CONFIG_DIR:-${HOME}/.claude}:/host-claude:ro
+      - ./usage-poller/poll_usage.py:/poll_usage.py:ro
+    tmpfs:
+      - /run/poller:mode=0700
+    # The script decides when a poll is due (every 4 minutes, longer after a rate limit), so this loop can be short.
+    entrypoint: ["/bin/sh", "-c", "while true; do python3 /poll_usage.py || true; sleep 60; done"]
+
+volumes:
+  otel-lgtm-data:
