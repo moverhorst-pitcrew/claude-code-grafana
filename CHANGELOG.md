@@ -3,6 +3,12 @@
 All notable changes to this project. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the project uses [Semantic Versioning](https://semver.org/). Upgrade notes are in [docs/upgrading.md](docs/upgrading.md).
 
+## [Unreleased]
+
+### Added
+- `examples/alerting/`: Grafana alert rule examples for weekly usage above 80%, 5-hour usage
+  above 90%, a stale usage poller, and daily cost per host above a threshold.
+
 ## [1.1.0] - 2026-10-30
 
 ### Added

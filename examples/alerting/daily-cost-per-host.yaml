@@ -1,0 +1,62 @@
+# Fires when a host's cost in the trailing 24 hours is above a threshold. Needs
+# OTEL_RESOURCE_ATTRIBUTES=host.name=<name> on each Claude Code install (see "How it works" in
+# the main README); without it, every host's cost is counted under one empty host_name.
+#
+# Adjust before use:
+# - datasourceUid: the uid of your Prometheus datasource (Dashboard settings > JSON Model
+#   on the imported dashboard, or Connections > Data sources).
+# - the 20 (USD) threshold in the "C" query; this is an example, not a recommendation.
+# - add a notification policy or a label here that routes to your contact point; this file
+#   intentionally has none.
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: daily-cost-per-host
+    folder: Claude Code
+    interval: 15m
+    rules:
+      - uid: claude-daily-cost-per-host
+        title: Daily cost above threshold per host
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 86400
+              to: 0
+            datasourceUid: prometheus
+            model:
+              refId: A
+              expr: sum by (host_name) (max_over_time(claude_code_cost_usage_USD_total[24h]))
+              instant: true
+          - refId: B
+            relativeTimeRange:
+              from: 86400
+              to: 0
+            datasourceUid: "__expr__"
+            model:
+              refId: B
+              type: reduce
+              expression: A
+              reducer: last
+          - refId: C
+            relativeTimeRange:
+              from: 86400
+              to: 0
+            datasourceUid: "__expr__"
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [20]
+        noDataState: NoData
+        execErrState: Error
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Claude Code cost on {{ $labels.host_name }} is above the daily threshold"
+          description: "Cost over the last 24h on {{ $labels.host_name }} is ${{ $values.A.Value }}."
