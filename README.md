@@ -3,7 +3,7 @@
 # Claude Code Grafana
 
 **See what your Claude Code sessions cost, how fast they are, and what they actually do.**
-A local Grafana dashboard for Claude Code's OpenTelemetry data: cost and tokens, productivity, API and tool performance, subagents, **full trace waterfalls**, and (optionally) your subscription limits. One command to install, everything stays on your machine.
+A local Grafana dashboard for Claude Code's OpenTelemetry data: cost and tokens, productivity, API and tool performance, subagents, hooks, context compaction, **full trace waterfalls**, and (optionally) your subscription limits. One command to install, everything stays on your machine.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Runs on](https://img.shields.io/badge/runs%20on-Podman%20%2B%20systemd-8A2BE2)
@@ -20,8 +20,10 @@ A local Grafana dashboard for Claude Code's OpenTelemetry data: cost and tokens,
 - **Health at a glance.** Green, orange or red tiles that compare *now* with *your own* last 7 days (latency, time to first token, cost per request, tool failures, cache hits). No magic thresholds, so they fit any setup.
 - **Cost and tokens** per model, effort and query source, with the cache hit rate that quietly drives your bill.
 - **Productivity.** Lines added and removed, edit accept rate, commits, prompts, active time.
-- **Tool and permission insight.** Which tools run, how long they take, what fails, what gets approved or blocked, MCP server status, skills and plugins in use.
-- **Subagents.** How many ran, on which model, how long, how many tokens.
+- **Tool and permission insight.** Which tools run, how long they take, what fails, what gets approved or blocked, MCP server status and connection errors, skills, slash commands and plugins in use.
+- **Subagents.** How many ran, on which model, how long, how many tokens, and what they cost.
+- **Hooks and context compaction.** How often your hooks run, which ones are slow or block an action, and how often the context was compacted, how big it was before and after, and how long it took.
+- **Where the money goes.** Cost by subagent, by MCP server and by Claude Code version, and which MCP tools fill your context.
 - **Trace waterfalls.** Click any interaction and see every LLM request and tool call on a timeline, including how long a tool *waited for your permission* versus how long it *ran*.
 - **Subscription limits** (opt-in). 5-hour and weekly usage, resets, and a *pace* tile that warns when you are on course to hit a limit before it resets.
 - **Charts that scale.** Event charts are rates (per minute or per hour), so they read the same at 15 minutes or 7 days.
@@ -61,11 +63,15 @@ It is safe to run again. See `./install.sh --help`.
   </tr>
   <tr>
     <td width="50%"><a href="docs/screenshots/04-productivity-and-api.jpg"><img src="docs/screenshots/04-productivity-and-api.jpg" alt="Productivity and API performance"></a><br><sub><b>Productivity and API performance</b>. The dashed lines are your own usual p95.</sub></td>
-    <td width="50%"><a href="docs/screenshots/05-tools-and-mcp.jpg"><img src="docs/screenshots/05-tools-and-mcp.jpg" alt="Tools, permissions, MCP, skills"></a><br><sub><b>Tools, permissions, MCP servers and skills</b>.</sub></td>
+    <td width="50%"><a href="docs/screenshots/05-tools-and-mcp.jpg"><img src="docs/screenshots/05-tools-and-mcp.jpg" alt="Tools, permissions, MCP, skills"></a><br><sub><b>Tools, permissions, MCP servers, skills and slash commands</b>.</sub></td>
   </tr>
   <tr>
     <td width="50%"><a href="docs/screenshots/06-traces-and-slow-calls.jpg"><img src="docs/screenshots/06-traces-and-slow-calls.jpg" alt="Traces and slow calls"></a><br><sub><b>Recent interactions and slow calls</b>. Click a trace or span ID to open it.</sub></td>
     <td width="50%"><a href="docs/screenshots/07-trace-waterfall.jpg"><img src="docs/screenshots/07-trace-waterfall.jpg" alt="Trace waterfall"></a><br><sub><b>Trace waterfall</b>: one interaction with its LLM requests, tool calls, permission waits and execution times.</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><a href="docs/screenshots/08-cost-attribution.jpg"><img src="docs/screenshots/08-cost-attribution.jpg" alt="Cost by subagent, MCP server and version"></a><br><sub><b>Where the money goes</b>: cost by subagent, MCP server and Claude Code version, and the MCP tools that use the most tokens.</sub></td>
+    <td width="50%"><a href="docs/screenshots/09-hooks-and-compaction.jpg"><img src="docs/screenshots/09-hooks-and-compaction.jpg" alt="Hooks and context compaction"></a><br><sub><b>Hooks and context compaction</b>: hook runs, duration and problems; compactions, context before and after, and how long they took.</sub></td>
   </tr>
 </table>
 
@@ -189,7 +195,7 @@ Data lives in `~/.local/share/otel-lgtm`; delete that folder to wipe all stored 
 
 ## Compatibility
 
-Tested with Claude Code 2.1.312, `grafana/otel-lgtm` 0.38.1 (Grafana 13), Podman 5.7 and Ubuntu 26.04. Other Claude Code versions may rename metrics, events or fields. Issues and pull requests are welcome, especially reports from other versions or distributions.
+Tested with Claude Code 2.1.314, `grafana/otel-lgtm` 0.38.1 (Grafana 13), Podman 5.7 and Ubuntu 26.04. Other Claude Code versions may rename metrics, events or fields. Issues and pull requests are welcome, especially reports from other versions or distributions.
 
 ## License
 

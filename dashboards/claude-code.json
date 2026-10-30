@@ -1051,7 +1051,7 @@
         "minVizWidth": 8,
         "text": {
           "titleSize": 13,
-          "valueSize": 18
+          "valueSize": 14
         },
         "reduceOptions": {
           "calcs": [
@@ -1117,7 +1117,7 @@
         "minVizWidth": 8,
         "text": {
           "titleSize": 13,
-          "valueSize": 18
+          "valueSize": 14
         },
         "reduceOptions": {
           "calcs": [
@@ -2438,7 +2438,7 @@
         "minVizWidth": 8,
         "text": {
           "titleSize": 13,
-          "valueSize": 18
+          "valueSize": 14
         },
         "reduceOptions": {
           "calcs": [
@@ -2503,7 +2503,7 @@
         "minVizWidth": 8,
         "text": {
           "titleSize": 13,
-          "valueSize": 18
+          "valueSize": 14
         },
         "reduceOptions": {
           "calcs": [
@@ -2535,7 +2535,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sort_desc(sum by (effort) (max_over_time(claude_code_cost_usage_USD_total{model=~\"$model\"}[$__range])))",
+          "expr": "sort_desc(label_replace(sum by (effort) (max_over_time(claude_code_cost_usage_USD_total{model=~\"$model\"}[$__range])), \"effort\", \"not set\", \"effort\", \"^$\"))",
           "legendFormat": "{{effort}}",
           "refId": "A",
           "instant": true,
@@ -2568,7 +2568,7 @@
         "minVizWidth": 8,
         "text": {
           "titleSize": 13,
-          "valueSize": 18
+          "valueSize": 14
         },
         "reduceOptions": {
           "calcs": [
@@ -2632,7 +2632,7 @@
         "minVizWidth": 8,
         "text": {
           "titleSize": 13,
-          "valueSize": 18
+          "valueSize": 14
         },
         "reduceOptions": {
           "calcs": [
@@ -2696,6 +2696,18 @@
               {
                 "id": "decimals",
                 "value": 4
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "User"
+            },
+            "properties": [
+              {
+                "id": "noValue",
+                "value": "unknown"
               }
             ]
           }
@@ -2791,27 +2803,286 @@
     },
     {
       "id": 48,
+      "type": "bargauge",
+      "title": "Cost by subagent",
+      "description": "Cost of subagent runs (Explore, general-purpose, custom agents). The main conversation is left out: it would dwarf them.",
+      "gridPos": {
+        "x": 0,
+        "y": 59,
+        "w": 6,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sort_desc(sum by (agent_name) (max_over_time(claude_code_cost_usage_USD_total{agent_name!=\"\",model=~\"$model\"}[$__range])))",
+          "legendFormat": "{{agent_name}}",
+          "refId": "A",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
+          "noValue": "no data yet",
+          "min": 0,
+          "displayName": "${__field.labels.agent_name}",
+          "decimals": 4
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": true,
+        "valueMode": "color",
+        "namePlacement": "top",
+        "sizing": "manual",
+        "minVizHeight": 26,
+        "maxVizHeight": 34,
+        "minVizWidth": 8,
+        "text": {
+          "titleSize": 13,
+          "valueSize": 14
+        },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false,
+          "fields": ""
+        }
+      }
+    },
+    {
+      "id": 49,
+      "type": "bargauge",
+      "title": "Cost by MCP server",
+      "description": "Cost of the model turns that handled MCP tool calls, per MCP server. Built-in tools are left out.",
+      "gridPos": {
+        "x": 6,
+        "y": 59,
+        "w": 6,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sort_desc(sum by (mcp_server_name) (max_over_time(claude_code_cost_usage_USD_total{mcp_server_name!=\"\",model=~\"$model\"}[$__range])))",
+          "legendFormat": "{{mcp_server_name}}",
+          "refId": "A",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
+          "noValue": "no data yet",
+          "min": 0,
+          "displayName": "${__field.labels.mcp_server_name}",
+          "decimals": 4
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": true,
+        "valueMode": "color",
+        "namePlacement": "top",
+        "sizing": "manual",
+        "minVizHeight": 26,
+        "maxVizHeight": 34,
+        "minVizWidth": 8,
+        "text": {
+          "titleSize": 13,
+          "valueSize": 14
+        },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false,
+          "fields": ""
+        }
+      }
+    },
+    {
+      "id": 50,
+      "type": "bargauge",
+      "title": "Tokens by MCP tool",
+      "description": "Tokens spent on turns that handled each MCP tool's result (top 5). Shows which MCP tools fill the context.",
+      "gridPos": {
+        "x": 12,
+        "y": 59,
+        "w": 6,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "topk(5, sum by (mcp_server_name, mcp_tool_name) (max_over_time(claude_code_token_usage_tokens_total{mcp_tool_name!=\"\",model=~\"$model\"}[$__range])))",
+          "legendFormat": "{{mcp_server_name}} / {{mcp_tool_name}}",
+          "refId": "A",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "si:",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
+          "noValue": "no data yet",
+          "min": 0,
+          "displayName": "${__field.labels.mcp_server_name} / ${__field.labels.mcp_tool_name}"
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": true,
+        "valueMode": "color",
+        "namePlacement": "top",
+        "sizing": "manual",
+        "minVizHeight": 26,
+        "maxVizHeight": 34,
+        "minVizWidth": 8,
+        "text": {
+          "titleSize": 13,
+          "valueSize": 14
+        },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false,
+          "fields": ""
+        }
+      }
+    },
+    {
+      "id": 51,
+      "type": "bargauge",
+      "title": "Cost by version",
+      "description": "Cost per Claude Code version, so a release that changes your spend stands out.",
+      "gridPos": {
+        "x": 18,
+        "y": 59,
+        "w": 6,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sort_desc(sum by (service_version) (max_over_time(claude_code_cost_usage_USD_total{model=~\"$model\"}[$__range])))",
+          "legendFormat": "{{service_version}}",
+          "refId": "A",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
+          "noValue": "no data yet",
+          "min": 0,
+          "displayName": "${__field.labels.service_version}",
+          "decimals": 4
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": true,
+        "valueMode": "color",
+        "namePlacement": "top",
+        "sizing": "manual",
+        "minVizHeight": 26,
+        "maxVizHeight": 34,
+        "minVizWidth": 8,
+        "text": {
+          "titleSize": 13,
+          "valueSize": 14
+        },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false,
+          "fields": ""
+        }
+      }
+    },
+    {
+      "id": 52,
       "type": "row",
       "title": "Productivity",
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 59,
+        "y": 67,
         "w": 24,
         "h": 1
       },
       "panels": []
     },
     {
-      "id": 49,
+      "id": 53,
       "type": "bargauge",
       "title": "Lines added vs removed",
       "description": "Lines changed by Claude's edits in the selected range.",
       "gridPos": {
         "x": 0,
-        "y": 60,
+        "y": 68,
         "w": 6,
-        "h": 5
+        "h": 7
       },
       "datasource": {
         "type": "prometheus",
@@ -2855,7 +3126,7 @@
         "minVizWidth": 8,
         "text": {
           "titleSize": 13,
-          "valueSize": 18
+          "valueSize": 14
         },
         "reduceOptions": {
           "calcs": [
@@ -2867,15 +3138,15 @@
       }
     },
     {
-      "id": 50,
+      "id": 54,
       "type": "bargauge",
       "title": "Edit decisions",
       "description": "Permission decisions for Edit, Write and NotebookEdit.",
       "gridPos": {
         "x": 6,
-        "y": 60,
+        "y": 68,
         "w": 6,
-        "h": 5
+        "h": 7
       },
       "datasource": {
         "type": "prometheus",
@@ -2919,7 +3190,7 @@
         "minVizWidth": 8,
         "text": {
           "titleSize": 13,
-          "valueSize": 18
+          "valueSize": 14
         },
         "reduceOptions": {
           "calcs": [
@@ -2931,15 +3202,15 @@
       }
     },
     {
-      "id": 51,
+      "id": 55,
       "type": "bargauge",
       "title": "Edits by language",
       "description": "",
       "gridPos": {
         "x": 12,
-        "y": 60,
+        "y": 68,
         "w": 6,
-        "h": 5
+        "h": 7
       },
       "datasource": {
         "type": "prometheus",
@@ -2983,7 +3254,7 @@
         "minVizWidth": 8,
         "text": {
           "titleSize": 13,
-          "valueSize": 18
+          "valueSize": 14
         },
         "reduceOptions": {
           "calcs": [
@@ -2995,15 +3266,15 @@
       }
     },
     {
-      "id": 52,
+      "id": 56,
       "type": "stat",
       "title": "Edit accept rate",
       "description": "Share of edit permission prompts accepted.",
       "gridPos": {
         "x": 18,
-        "y": 60,
+        "y": 68,
         "w": 6,
-        "h": 5
+        "h": 7
       },
       "datasource": {
         "type": "prometheus",
@@ -3050,13 +3321,13 @@
       }
     },
     {
-      "id": 53,
+      "id": 57,
       "type": "timeseries",
       "title": "Prompts per hour",
       "description": "How often you prompt (user_prompt events). Shown as a rate per hour, so the scale is the same at every time range.",
       "gridPos": {
         "x": 0,
-        "y": 65,
+        "y": 75,
         "w": 8,
         "h": 8
       },
@@ -3113,13 +3384,13 @@
       }
     },
     {
-      "id": 54,
+      "id": 58,
       "type": "timeseries",
       "title": "Activity share by type",
       "description": "Share of time spent active, summed over sessions (above 100% means several sessions at once). user = you typing/reading; cli = Claude working.",
       "gridPos": {
         "x": 8,
-        "y": 65,
+        "y": 75,
         "w": 8,
         "h": 8
       },
@@ -3177,13 +3448,13 @@
       }
     },
     {
-      "id": 55,
+      "id": 59,
       "type": "timeseries",
       "title": "Sessions started per hour",
       "description": "Sessions that began in each interval (fresh / continue / resume). Shown as a rate per hour, so the scale is the same at every time range.",
       "gridPos": {
         "x": 16,
-        "y": 65,
+        "y": 75,
         "w": 8,
         "h": 8
       },
@@ -3241,26 +3512,26 @@
       }
     },
     {
-      "id": 56,
+      "id": 60,
       "type": "row",
       "title": "API performance (from api_request logs)",
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 73,
+        "y": 83,
         "w": 24,
         "h": 1
       },
       "panels": []
     },
     {
-      "id": 57,
+      "id": 61,
       "type": "timeseries",
       "title": "API latency p50 / p95",
       "description": "Dashed lines: your own p95 over the last 7 days, and 1.5x that (where the Health tile turns orange).",
       "gridPos": {
         "x": 0,
-        "y": 74,
+        "y": 84,
         "w": 8,
         "h": 8
       },
@@ -3422,13 +3693,13 @@
       }
     },
     {
-      "id": 58,
+      "id": 62,
       "type": "timeseries",
       "title": "Time to first token p50 / p95",
       "description": "Dashed lines: your own p95 over the last 7 days, and 1.5x that (where the Health tile turns orange).",
       "gridPos": {
         "x": 8,
-        "y": 74,
+        "y": 84,
         "w": 8,
         "h": 8
       },
@@ -3590,13 +3861,13 @@
       }
     },
     {
-      "id": 59,
+      "id": 63,
       "type": "timeseries",
       "title": "API requests per minute",
       "description": "Shown as a rate per min, so the scale is the same at every time range.",
       "gridPos": {
         "x": 16,
-        "y": 74,
+        "y": 84,
         "w": 8,
         "h": 8
       },
@@ -3653,13 +3924,13 @@
       }
     },
     {
-      "id": 60,
+      "id": 64,
       "type": "timeseries",
       "title": "Output tokens per request (avg)",
       "description": "",
       "gridPos": {
         "x": 0,
-        "y": 82,
+        "y": 92,
         "w": 5,
         "h": 8
       },
@@ -3715,13 +3986,13 @@
       }
     },
     {
-      "id": 61,
+      "id": 65,
       "type": "timeseries",
       "title": "Cache read / request (avg)",
       "description": "",
       "gridPos": {
         "x": 5,
-        "y": 82,
+        "y": 92,
         "w": 5,
         "h": 8
       },
@@ -3777,13 +4048,13 @@
       }
     },
     {
-      "id": 62,
+      "id": 66,
       "type": "table",
       "title": "Requests by effort and speed",
       "description": "Reasoning effort and speed setting (e.g. fast mode) per request.",
       "gridPos": {
         "x": 10,
-        "y": 82,
+        "y": 92,
         "w": 8,
         "h": 8
       },
@@ -3885,13 +4156,13 @@
       ]
     },
     {
-      "id": 63,
+      "id": 67,
       "type": "timeseries",
       "title": "API errors per hour",
       "description": "api_error / api_retries_exhausted events. Empty while the API is healthy (verified: a bad model name produces an HTTP 404 here). Shown as a rate per hour, so the scale is the same at every time range.",
       "gridPos": {
         "x": 18,
-        "y": 82,
+        "y": 92,
         "w": 6,
         "h": 8
       },
@@ -3958,26 +4229,26 @@
       }
     },
     {
-      "id": 64,
+      "id": 68,
       "type": "row",
       "title": "Tools, permissions and skills",
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 90,
+        "y": 100,
         "w": 24,
         "h": 1
       },
       "panels": []
     },
     {
-      "id": 65,
+      "id": 69,
       "type": "timeseries",
       "title": "Tool calls per minute",
       "description": "Shown as a rate per min, so the scale is the same at every time range.",
       "gridPos": {
         "x": 0,
-        "y": 91,
+        "y": 101,
         "w": 8,
         "h": 8
       },
@@ -4034,13 +4305,13 @@
       }
     },
     {
-      "id": 66,
+      "id": 70,
       "type": "timeseries",
       "title": "Tool duration p95 by tool",
       "description": "",
       "gridPos": {
         "x": 8,
-        "y": 91,
+        "y": 101,
         "w": 8,
         "h": 8
       },
@@ -4097,13 +4368,13 @@
       }
     },
     {
-      "id": 67,
+      "id": 71,
       "type": "timeseries",
       "title": "Tool failures per hour",
       "description": "tool_result events with success=false. Shown as a rate per hour, so the scale is the same at every time range.",
       "gridPos": {
         "x": 16,
-        "y": 91,
+        "y": 101,
         "w": 8,
         "h": 8
       },
@@ -4160,13 +4431,13 @@
       }
     },
     {
-      "id": 68,
+      "id": 72,
       "type": "timeseries",
       "title": "Permission decisions per minute",
       "description": "accept/reject and who decided (config, user, hook ...). Shown as a rate per min, so the scale is the same at every time range.",
       "gridPos": {
         "x": 0,
-        "y": 99,
+        "y": 109,
         "w": 8,
         "h": 8
       },
@@ -4223,13 +4494,13 @@
       }
     },
     {
-      "id": 69,
+      "id": 73,
       "type": "table",
       "title": "Permission mode and auto-mode verdicts",
       "description": "Permission mode in force and the auto-mode classifier's verdict per tool call.",
       "gridPos": {
         "x": 8,
-        "y": 99,
+        "y": 109,
         "w": 8,
         "h": 8
       },
@@ -4331,13 +4602,13 @@
       ]
     },
     {
-      "id": 70,
+      "id": 74,
       "type": "timeseries",
       "title": "Tool result size p95 by tool",
       "description": "Large results fill the context window; watch for tools that return a lot.",
       "gridPos": {
         "x": 16,
-        "y": 99,
+        "y": 109,
         "w": 8,
         "h": 8
       },
@@ -4394,13 +4665,13 @@
       }
     },
     {
-      "id": 71,
+      "id": 75,
       "type": "table",
       "title": "MCP server connections",
-      "description": "mcp_server_connection events in the range. 'failed' means a configured server did not start.",
+      "description": "mcp_server_connection events in the range. 'failed' means a configured server did not start; the error code says why (e.g. an HTTP status).",
       "gridPos": {
         "x": 0,
-        "y": 107,
+        "y": 117,
         "w": 12,
         "h": 8
       },
@@ -4414,7 +4685,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum by (status, transport_type, server_scope) (count_over_time({service_name=\"claude-code\"} | event_name=\"mcp_server_connection\" [$__range]))",
+          "expr": "sum by (status, transport_type, error_code) (count_over_time({service_name=\"claude-code\"} | event_name=\"mcp_server_connection\" [$__range]))",
           "legendFormat": "",
           "refId": "A",
           "queryType": "instant",
@@ -4467,6 +4738,18 @@
                 ]
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Error code"
+            },
+            "properties": [
+              {
+                "id": "noValue",
+                "value": "-"
+              }
+            ]
           }
         ]
       },
@@ -4485,27 +4768,27 @@
               "status": 0,
               "Value #A": 1,
               "transport_type": 2,
-              "server_scope": 3
+              "error_code": 3
             },
             "renameByName": {
               "status": "Status",
               "Value #A": "Count",
               "transport_type": "Transport",
-              "server_scope": "Scope"
+              "error_code": "Error code"
             }
           }
         }
       ]
     },
     {
-      "id": 72,
+      "id": 76,
       "type": "table",
       "title": "Skills activated",
       "description": "Skills loaded, and whether you or Claude triggered them.",
       "gridPos": {
         "x": 12,
-        "y": 107,
-        "w": 12,
+        "y": 117,
+        "w": 6,
         "h": 8
       },
       "datasource": {
@@ -4606,26 +4889,132 @@
       ]
     },
     {
-      "id": 73,
+      "id": 77,
+      "type": "table",
+      "title": "Slash commands used",
+      "description": "Slash commands typed as prompts (/clear, /usage, custom commands ...).",
+      "gridPos": {
+        "x": 18,
+        "y": 117,
+        "w": 6,
+        "h": 8
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "sum by (command_name) (count_over_time({service_name=\"claude-code\"} | event_name=\"user_prompt\" | command_name!=\"\" [$__range]))",
+          "legendFormat": "",
+          "refId": "A",
+          "queryType": "instant",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            }
+          },
+          "noValue": "n/a"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Count"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "gauge",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "indexByName": {
+              "command_name": 0,
+              "Value #A": 1
+            },
+            "renameByName": {
+              "command_name": "Command",
+              "Value #A": "Count"
+            }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "Count",
+                "desc": true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": 78,
       "type": "row",
       "title": "Subagents",
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 115,
+        "y": 125,
         "w": 24,
         "h": 1
       },
       "panels": []
     },
     {
-      "id": 74,
+      "id": 79,
       "type": "table",
       "title": "Subagent runs by type",
       "description": "subagent_completed events: which subagents ran, and on which model.",
       "gridPos": {
         "x": 0,
-        "y": 116,
+        "y": 126,
         "w": 8,
         "h": 7
       },
@@ -4727,13 +5116,13 @@
       ]
     },
     {
-      "id": 75,
+      "id": 80,
       "type": "timeseries",
       "title": "Subagent duration (avg)",
       "description": "Wall-clock time per subagent run.",
       "gridPos": {
         "x": 8,
-        "y": 116,
+        "y": 126,
         "w": 8,
         "h": 7
       },
@@ -4790,13 +5179,13 @@
       }
     },
     {
-      "id": 76,
+      "id": 81,
       "type": "timeseries",
       "title": "Subagent tokens per run (avg)",
       "description": "Total tokens a subagent used (counted separately from the main conversation).",
       "gridPos": {
         "x": 16,
-        "y": 116,
+        "y": 126,
         "w": 8,
         "h": 7
       },
@@ -4852,26 +5241,739 @@
       }
     },
     {
-      "id": 77,
+      "id": 82,
       "type": "row",
-      "title": "Traces (span metrics + Tempo)",
+      "title": "Hooks and context compaction",
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 123,
+        "y": 133,
         "w": 24,
         "h": 1
       },
       "panels": []
     },
     {
-      "id": 78,
+      "id": 83,
+      "type": "stat",
+      "title": "Hook runs",
+      "description": "Hook executions in the range (one per hook event, covering all hooks that matched it).",
+      "gridPos": {
+        "x": 0,
+        "y": 134,
+        "w": 4,
+        "h": 4
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "sum(count_over_time({service_name=\"claude-code\"} | event_name=\"hook_execution_complete\" [$__range])) or vector(0)",
+          "legendFormat": "",
+          "refId": "A",
+          "queryType": "instant"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "si:",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          },
+          "noValue": "0",
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      }
+    },
+    {
+      "id": 84,
+      "type": "stat",
+      "title": "Hook problems",
+      "description": "Hook runs that blocked an action or errored (num_blocking + num_non_blocking_error). Zero is healthy; a hook that blocks on purpose will show up here too.",
+      "gridPos": {
+        "x": 0,
+        "y": 138,
+        "w": 4,
+        "h": 4
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "(sum(sum_over_time({service_name=\"claude-code\"} | event_name=\"hook_execution_complete\" | unwrap num_blocking | __error__=\"\" [$__range])) or vector(0)) + (sum(sum_over_time({service_name=\"claude-code\"} | event_name=\"hook_execution_complete\" | unwrap num_non_blocking_error | __error__=\"\" [$__range])) or vector(0))",
+          "legendFormat": "",
+          "refId": "A",
+          "queryType": "instant"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "si:",
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "0",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      }
+    },
+    {
+      "id": 85,
+      "type": "timeseries",
+      "title": "Hook runs per minute",
+      "description": "PreToolUse / PostToolUse / SessionStart / UserPromptSubmit ... hook executions. Shown as a rate per min, so the scale is the same at every time range.",
+      "gridPos": {
+        "x": 4,
+        "y": 134,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "(sum by (hook_event) (count_over_time({service_name=\"claude-code\"} | event_name=\"hook_execution_complete\" [$__auto]))) * 60000 / $__interval_ms",
+          "legendFormat": "{{hook_event}}",
+          "refId": "A",
+          "queryType": "range"
+        }
+      ],
+      "interval": "1m",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "si:",
+          "custom": {
+            "drawStyle": "bars",
+            "lineWidth": 2,
+            "fillOpacity": 40,
+            "showPoints": "auto",
+            "pointSize": 5,
+            "spanNulls": 1800000,
+            "barAlignment": 0,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
+          },
+          "noValue": "no data yet",
+          "min": 0,
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": [],
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 86,
+      "type": "timeseries",
+      "title": "Hook duration p95 by hook",
+      "description": "Total time a hook event took. Hooks run in the critical path: a slow one delays every tool call or prompt it is attached to.",
+      "gridPos": {
+        "x": 12,
+        "y": 134,
+        "w": 6,
+        "h": 8
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "quantile_over_time(0.95, {service_name=\"claude-code\"} | event_name=\"hook_execution_complete\" | unwrap total_duration_ms | __error__=\"\" [$__auto]) by (hook_name)",
+          "legendFormat": "{{hook_name}}",
+          "refId": "A",
+          "queryType": "range"
+        }
+      ],
+      "interval": "1m",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "auto",
+            "pointSize": 5,
+            "spanNulls": 1800000,
+            "barAlignment": 0,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          },
+          "noValue": "no data yet",
+          "min": 0,
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": [],
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 87,
+      "type": "table",
+      "title": "Hooks by event",
+      "description": "Hook executions per hook event and matcher in the range.",
+      "gridPos": {
+        "x": 18,
+        "y": 134,
+        "w": 6,
+        "h": 8
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "sum by (hook_name) (count_over_time({service_name=\"claude-code\"} | event_name=\"hook_execution_complete\" [$__range]))",
+          "legendFormat": "",
+          "refId": "A",
+          "queryType": "instant",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            }
+          },
+          "noValue": "n/a"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Count"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "gauge",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "indexByName": {
+              "hook_name": 0,
+              "Value #A": 1
+            },
+            "renameByName": {
+              "hook_name": "Hook",
+              "Value #A": "Count"
+            }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "Count",
+                "desc": true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": 88,
+      "type": "stat",
+      "title": "Compactions",
+      "description": "Times the conversation was compacted to free context (automatically when it filled up, or by /compact).",
+      "gridPos": {
+        "x": 0,
+        "y": 142,
+        "w": 4,
+        "h": 4
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "sum(count_over_time({service_name=\"claude-code\"} | event_name=\"compaction\" [$__range])) or vector(0)",
+          "legendFormat": "",
+          "refId": "A",
+          "queryType": "instant"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "si:",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          },
+          "noValue": "0",
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      }
+    },
+    {
+      "id": 89,
+      "type": "stat",
+      "title": "Context freed",
+      "description": "Share of the context removed by compactions in the range.",
+      "gridPos": {
+        "x": 0,
+        "y": 146,
+        "w": 4,
+        "h": 4
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "1 - sum(sum_over_time({service_name=\"claude-code\"} | event_name=\"compaction\" | unwrap post_tokens | __error__=\"\" [$__range])) / sum(sum_over_time({service_name=\"claude-code\"} | event_name=\"compaction\" | unwrap pre_tokens | __error__=\"\" [$__range]))",
+          "legendFormat": "",
+          "refId": "A",
+          "queryType": "instant"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          },
+          "noValue": "n/a",
+          "mappings": [],
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      }
+    },
+    {
+      "id": 90,
+      "type": "timeseries",
+      "title": "Context size before and after compaction",
+      "description": "Tokens in context when a compaction ran, and what was left afterwards.",
+      "gridPos": {
+        "x": 4,
+        "y": 142,
+        "w": 7,
+        "h": 8
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "avg_over_time({service_name=\"claude-code\"} | event_name=\"compaction\" | unwrap pre_tokens | __error__=\"\" [$__auto]) by (trigger)",
+          "legendFormat": "before ({{trigger}})",
+          "refId": "A",
+          "queryType": "range"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "avg_over_time({service_name=\"claude-code\"} | event_name=\"compaction\" | unwrap post_tokens | __error__=\"\" [$__auto]) by (trigger)",
+          "legendFormat": "after ({{trigger}})",
+          "refId": "B",
+          "queryType": "range"
+        }
+      ],
+      "interval": "1m",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "si:",
+          "custom": {
+            "drawStyle": "bars",
+            "lineWidth": 2,
+            "fillOpacity": 40,
+            "showPoints": "auto",
+            "pointSize": 5,
+            "spanNulls": 1800000,
+            "barAlignment": 0,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          },
+          "noValue": "no data yet",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": [],
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 91,
+      "type": "timeseries",
+      "title": "Compaction duration",
+      "description": "How long a compaction took. Claude is busy summarising during this time.",
+      "gridPos": {
+        "x": 11,
+        "y": 142,
+        "w": 5,
+        "h": 8
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "avg_over_time({service_name=\"claude-code\"} | event_name=\"compaction\" | unwrap duration_ms | __error__=\"\" [$__auto]) by (trigger)",
+          "legendFormat": "{{trigger}}",
+          "refId": "A",
+          "queryType": "range"
+        }
+      ],
+      "interval": "1m",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "custom": {
+            "drawStyle": "bars",
+            "lineWidth": 2,
+            "fillOpacity": 40,
+            "showPoints": "auto",
+            "pointSize": 5,
+            "spanNulls": 1800000,
+            "barAlignment": 0,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          },
+          "noValue": "no data yet",
+          "min": 0,
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": [],
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 92,
+      "type": "table",
+      "title": "Compactions by trigger",
+      "description": "auto = the context window filled up; manual = /compact. OK=false means the compaction failed.",
+      "gridPos": {
+        "x": 16,
+        "y": 142,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "sum by (trigger, success) (count_over_time({service_name=\"claude-code\"} | event_name=\"compaction\" [$__range]))",
+          "legendFormat": "",
+          "refId": "A",
+          "queryType": "instant",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            }
+          },
+          "noValue": "n/a"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Count"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "gauge",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "indexByName": {
+              "trigger": 0,
+              "success": 1,
+              "Value #A": 2
+            },
+            "renameByName": {
+              "trigger": "Trigger",
+              "success": "OK",
+              "Value #A": "Count"
+            }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "Count",
+                "desc": true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": 93,
+      "type": "row",
+      "title": "Traces (span metrics + Tempo)",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 150,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 94,
       "type": "timeseries",
       "title": "Span rate by type",
       "description": "interaction = one prompt; llm_request = one API call; tool / tool.execution / tool.blocked_on_user. The binary also defines mcp.rpc, hook, subagent.spawn, compaction and bash.subprocess spans, but they were not exported in testing; they would show up here if emitted.",
       "gridPos": {
         "x": 0,
-        "y": 124,
+        "y": 151,
         "w": 8,
         "h": 8
       },
@@ -4929,13 +6031,13 @@
       }
     },
     {
-      "id": 79,
+      "id": 95,
       "type": "timeseries",
       "title": "Span p95 latency by type",
       "description": "",
       "gridPos": {
         "x": 8,
-        "y": 124,
+        "y": 151,
         "w": 8,
         "h": 8
       },
@@ -4993,13 +6095,13 @@
       }
     },
     {
-      "id": 80,
+      "id": 96,
       "type": "timeseries",
       "title": "Span errors per hour",
       "description": "Error spans per interval; empty is good. Shown as a rate per hour, so the scale is the same at every time range.",
       "gridPos": {
         "x": 16,
-        "y": 124,
+        "y": 151,
         "w": 8,
         "h": 8
       },
@@ -5057,13 +6159,13 @@
       }
     },
     {
-      "id": 81,
+      "id": 97,
       "type": "table",
       "title": "Recent interactions (click a trace ID to open the waterfall)",
       "description": "",
       "gridPos": {
         "x": 0,
-        "y": 132,
+        "y": 159,
         "w": 24,
         "h": 8
       },
@@ -5122,13 +6224,13 @@
       ]
     },
     {
-      "id": 82,
+      "id": 98,
       "type": "table",
       "title": "Slow LLM requests (over 3 s, slowest first)",
       "description": "",
       "gridPos": {
         "x": 0,
-        "y": 140,
+        "y": 167,
         "w": 24,
         "h": 7
       },
@@ -5222,13 +6324,13 @@
       ]
     },
     {
-      "id": 83,
+      "id": 99,
       "type": "table",
       "title": "Slow tool calls (over 1 s, slowest first)",
       "description": "Whole tool call, including any time spent waiting for a permission answer.",
       "gridPos": {
         "x": 0,
-        "y": 147,
+        "y": 174,
         "w": 24,
         "h": 7
       },
@@ -5320,26 +6422,26 @@
       ]
     },
     {
-      "id": 84,
+      "id": 100,
       "type": "row",
       "title": "Events, plugins and logs",
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 155,
+        "y": 182,
         "w": 24,
         "h": 1
       },
       "panels": []
     },
     {
-      "id": 85,
+      "id": 101,
       "type": "timeseries",
       "title": "Events per minute by type",
       "description": "plugin_loaded is excluded; it fires many times at every startup. Shown as a rate per min, so the scale is the same at every time range.",
       "gridPos": {
         "x": 0,
-        "y": 156,
+        "y": 183,
         "w": 12,
         "h": 8
       },
@@ -5396,13 +6498,13 @@
       }
     },
     {
-      "id": 86,
+      "id": 102,
       "type": "table",
       "title": "Plugins loaded",
       "description": "Plugins Claude Code loaded in the range (one load per session start).",
       "gridPos": {
         "x": 12,
-        "y": 156,
+        "y": 183,
         "w": 12,
         "h": 8
       },
@@ -5488,13 +6590,13 @@
       ]
     },
     {
-      "id": 87,
+      "id": 103,
       "type": "logs",
       "title": "Event stream (prompt text is redacted by default)",
       "description": "",
       "gridPos": {
         "x": 0,
-        "y": 164,
+        "y": 191,
         "w": 24,
         "h": 12
       },

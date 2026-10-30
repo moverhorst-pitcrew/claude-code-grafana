@@ -3,12 +3,12 @@
 
 Usage (from the repo root): python3 tools/gen_dashboard.py > dashboards/claude-code.json
 
-Signals (Claude Code 2.1.312, OTLP -> grafana/otel-lgtm):
+Signals (Claude Code 2.1.2xx-2.1.3xx, last checked on 2.1.314, OTLP -> grafana/otel-lgtm):
   Prometheus  claude_code_{session_count,cost_usage_USD,token_usage_tokens,active_time_seconds,
               lines_of_code_count,commit_count,pull_request_count,code_edit_tool_decision}_total
               traces_spanmetrics_* (span_name = claude_code.*)
   Loki        {service_name="claude-code"} with event_name structured metadata
-              (api_request, tool_result, tool_decision, user_prompt, skill_activated, ...)
+              (api_request, tool_result, tool_decision, user_prompt, skill_activated, hook_execution_complete, compaction, ...)
   Tempo       claude_code.interaction / llm_request / tool / tool.execution / tool.blocked_on_user
 
 Design notes
@@ -16,7 +16,7 @@ Design notes
     sample, so short sessions vanish from rate panels. Totals therefore use max_over_time per series
     over the range, and time-based cost/token/request panels are built from the exact api_request
     log events instead.
-  * Reading order: Overview (numbers) -> Cost -> Productivity -> API -> Tools -> Traces -> Events.
+  * Reading order: Overview (numbers) -> Cost -> Productivity -> API -> Tools -> Subagents -> Hooks/compaction -> Traces -> Events.
 """
 import json
 
@@ -59,6 +59,7 @@ PER = {
     "Tool failures by tool and error": ("Tool failures per hour", "hour", "$__interval_ms"),
     "Permission decisions": ("Permission decisions per minute", "min", "$__interval_ms"),
     "Events by type": ("Events per minute by type", "min", "$__interval_ms"),
+    "Hook runs": ("Hook runs per minute", "min", "$__interval_ms"),
     "Span errors": ("Span errors per hour", "hour", "1000"),   # already a per-second rate()
 }
 UNIT_MS = {"min": 60000, "hour": 3600000}
@@ -149,7 +150,7 @@ def bargauge(title, expr, unit, x, y, w=6, h=7, ds=PROM, desc="", legend="", col
     p["fieldConfig"] = {"defaults": bd, "overrides": []}
     p["options"] = {"orientation": "horizontal", "displayMode": "gradient", "showUnfilled": True, "valueMode": "color",
                     "namePlacement": "top", "sizing": "manual", "minVizHeight": 26, "maxVizHeight": 34, "minVizWidth": 8,
-                    "text": {"titleSize": 13, "valueSize": 18},
+                    "text": {"titleSize": 13, "valueSize": 14},
                     "reduceOptions": {"calcs": ["lastNotNull"], "values": False, "fields": ""}}
     return p
 
@@ -430,7 +431,7 @@ panels += [
     bargauge("Cost by model", f"sort_desc(sum by (model) (max_over_time({COST}{M}[{RNG}])))", "currencyUSD", 0, y, legend="{{model}}"),
     bargauge("Cost by query source", f"sort_desc(sum by (query_source) (max_over_time({COST}{M}[{RNG}])))", "currencyUSD", 6, y,
              legend="{{query_source}}", desc="main = your prompts; other values are sub-agents and background queries."),
-    bargauge("Cost by effort", f"sort_desc(sum by (effort) (max_over_time({COST}{M}[{RNG}])))", "currencyUSD", 12, y, legend="{{effort}}"),
+    bargauge("Cost by effort", f'sort_desc(label_replace(sum by (effort) (max_over_time({COST}{M}[{RNG}])), "effort", "not set", "effort", "^$"))', "currencyUSD", 12, y, legend="{{effort}}"),
     bargauge("Tokens by type", f"sort_desc(sum by (type) (max_over_time({TOK}{M}[{RNG}])))", "short", 18, y, legend="{{type}}"),
 ]
 y += 7
@@ -441,24 +442,36 @@ panels += [
           order=["session", "user_email", "Value"],
           rename={"session": "Session", "user_email": "User", "Value": "Cost"},
           overrides=[{"matcher": {"id": "byName", "options": "Cost"},
-                      "properties": [{"id": "unit", "value": "currencyUSD"}, {"id": "decimals", "value": 4}]}]),
+                      "properties": [{"id": "unit", "value": "currencyUSD"}, {"id": "decimals", "value": 4}]},
+                     {"matcher": {"id": "byName", "options": "User"}, "properties": [{"id": "noValue", "value": "unknown"}]}]),
     ts("Cost per API request (avg)", [(lq("avg_over_time", "api_request", unwrap="cost_usd", by="model"), "{{model}}")], "currencyUSD", 12, y, 12, 8,
        ds=LOKI, desc="Average cost_usd per request, by model."),
+]
+y += 8
+panels += [
+    bargauge("Cost by subagent", f'sort_desc(sum by (agent_name) (max_over_time({COST}{{agent_name!="",model=~"$model"}}[{RNG}])))', "currencyUSD", 0, y, h=8,
+             legend="{{agent_name}}", desc="Cost of subagent runs (Explore, general-purpose, custom agents). The main conversation is left out: it would dwarf them."),
+    bargauge("Cost by MCP server", f'sort_desc(sum by (mcp_server_name) (max_over_time({COST}{{mcp_server_name!="",model=~"$model"}}[{RNG}])))', "currencyUSD", 6, y, h=8,
+             legend="{{mcp_server_name}}", desc="Cost of the model turns that handled MCP tool calls, per MCP server. Built-in tools are left out."),
+    bargauge("Tokens by MCP tool", f'topk(5, sum by (mcp_server_name, mcp_tool_name) (max_over_time({TOK}{{mcp_tool_name!="",model=~"$model"}}[{RNG}])))', "short", 12, y, h=8,
+             legend="{{mcp_server_name}} / {{mcp_tool_name}}", desc="Tokens spent on turns that handled each MCP tool's result (top 5). Shows which MCP tools fill the context."),
+    bargauge("Cost by version", f"sort_desc(sum by (service_version) (max_over_time({COST}{M}[{RNG}])))", "currencyUSD", 18, y, h=8,
+             legend="{{service_version}}", desc="Cost per Claude Code version, so a release that changes your spend stands out."),
 ]
 y += 8
 
 # ============================================================================== Productivity
 panels.append(row("Productivity", y)); y += 1
 panels += [
-    bargauge("Lines added vs removed", f"sum by (type) (max_over_time({LOC}{M}[{RNG}]))", "short", 0, y, h=5, legend="{{type}}",
+    bargauge("Lines added vs removed", f"sum by (type) (max_over_time({LOC}{M}[{RNG}]))", "short", 0, y, h=7, legend="{{type}}",
              desc="Lines changed by Claude's edits in the selected range."),
-    bargauge("Edit decisions", f"sum by (tool_name, decision) (max_over_time({EDIT}[{RNG}]))", "short", 6, y, h=5,
+    bargauge("Edit decisions", f"sum by (tool_name, decision) (max_over_time({EDIT}[{RNG}]))", "short", 6, y, h=7,
              legend="{{tool_name}} / {{decision}}", desc="Permission decisions for Edit, Write and NotebookEdit."),
-    bargauge("Edits by language", f"sort_desc(sum by (language) (max_over_time({EDIT}[{RNG}])))", "short", 12, y, h=5, legend="{{language}}"),
+    bargauge("Edits by language", f"sort_desc(sum by (language) (max_over_time({EDIT}[{RNG}])))", "short", 12, y, h=7, legend="{{language}}"),
     stat("Edit accept rate", f'sum(max_over_time({EDIT}{{decision="accept"}}[{RNG}])) / sum(max_over_time({EDIT}[{RNG}]))',
-         "percentunit", 18, y, 6, 5, desc="Share of edit permission prompts accepted."),
+         "percentunit", 18, y, 6, 7, desc="Share of edit permission prompts accepted."),
 ]
-y += 5
+y += 7
 panels += [
     ts("Prompts over time", [(f'sum(count_over_time({ev("user_prompt")} [$__auto]))', "prompts")], "short", 0, y, 8, 8, ds=LOKI, bars=True,
        desc="How often you prompt (user_prompt events)."),
@@ -525,18 +538,22 @@ panels += [
 ]
 y += 8
 panels += [
-    table("MCP server connections", LOKI, cnt("mcp_server_connection", "status, transport_type, server_scope"), 0, y, 12, 8,
-          order=["status", "Value #A", "transport_type", "server_scope"],
-          rename={"status": "Status", "Value #A": "Count", "transport_type": "Transport", "server_scope": "Scope"},
-          desc="mcp_server_connection events in the range. 'failed' means a configured server did not start.",
+    table("MCP server connections", LOKI, cnt("mcp_server_connection", "status, transport_type, error_code"), 0, y, 12, 8,
+          order=["status", "Value #A", "transport_type", "error_code"],
+          rename={"status": "Status", "Value #A": "Count", "transport_type": "Transport", "error_code": "Error code"},
+          desc="mcp_server_connection events in the range. 'failed' means a configured server did not start; the error code says why (e.g. an HTTP status).",
           overrides=[{"matcher": {"id": "byName", "options": "Status"},
                       "properties": [{"id": "custom.cellOptions", "value": {"type": "color-text"}},
                                      {"id": "mappings", "value": [{"type": "value", "options": {
                                          "connected": {"color": "green", "index": 0}, "failed": {"color": "red", "index": 1},
-                                         "disconnected": {"color": "orange", "index": 2}}}]}]}]),
+                                         "disconnected": {"color": "orange", "index": 2}}}]}]},
+                     {"matcher": {"id": "byName", "options": "Error code"}, "properties": [{"id": "noValue", "value": "-"}]}]),
     count_table("Skills activated", cnt("skill_activated", "skill_name, invocation_trigger"),
-                [("skill_name", "Skill"), ("invocation_trigger", "Triggered by")], 12, y, 12, 8,
+                [("skill_name", "Skill"), ("invocation_trigger", "Triggered by")], 12, y, 6, 8,
                 desc="Skills loaded, and whether you or Claude triggered them."),
+    count_table("Slash commands used", cnt("user_prompt", "command_name", ' | command_name!=""'),
+                [("command_name", "Command")], 18, y, 6, 8,
+                desc="Slash commands typed as prompts (/clear, /usage, custom commands ...)."),
 ]
 y += 8
 
@@ -551,6 +568,43 @@ panels += [
        "short", 16, y, 8, 7, ds=LOKI, desc="Total tokens a subagent used (counted separately from the main conversation)."),
 ]
 y += 7
+
+# ============================================================================== Hooks and compaction
+panels.append(row("Hooks and context compaction", y)); y += 1
+HK = "hook_execution_complete"
+panels += [
+    stat("Hook runs", f'sum(count_over_time({ev(HK)} [{RNG}])) or vector(0)', "short", 0, y, 4, 4, ds=LOKI,
+         desc="Hook executions in the range (one per hook event, covering all hooks that matched it)."),
+    stat("Hook problems",
+         f'(sum(sum_over_time({ev(HK)} | unwrap num_blocking | __error__="" [{RNG}])) or vector(0)) + '
+         f'(sum(sum_over_time({ev(HK)} | unwrap num_non_blocking_error | __error__="" [{RNG}])) or vector(0))',
+         "short", 0, y + 4, 4, 4, ds=LOKI, bg=True, steps=ANY,
+         desc="Hook runs that blocked an action or errored (num_blocking + num_non_blocking_error). Zero is healthy; a hook that blocks on purpose will show up here too."),
+    ts("Hook runs", [(f'sum by (hook_event) (count_over_time({ev(HK)} [$__auto]))', "{{hook_event}}")], "short", 4, y, 8, 8, ds=LOKI,
+       stack=True, bars=True, desc="PreToolUse / PostToolUse / SessionStart / UserPromptSubmit ... hook executions."),
+    ts("Hook duration p95 by hook", [(lq("", HK, unwrap="total_duration_ms", by="hook_name", q=0.95), "{{hook_name}}")], "ms", 12, y, 6, 8, ds=LOKI,
+       desc="Total time a hook event took. Hooks run in the critical path: a slow one delays every tool call or prompt it is attached to."),
+    count_table("Hooks by event", cnt(HK, "hook_name"), [("hook_name", "Hook")], 18, y, 6, 8,
+                desc="Hook executions per hook event and matcher in the range."),
+]
+y += 8
+CP = "compaction"
+panels += [
+    stat("Compactions", f'sum(count_over_time({ev(CP)} [{RNG}])) or vector(0)', "short", 0, y, 4, 4, ds=LOKI,
+         desc="Times the conversation was compacted to free context (automatically when it filled up, or by /compact)."),
+    stat("Context freed", f'1 - sum(sum_over_time({ev(CP)} | unwrap post_tokens | __error__="" [{RNG}])) / '
+                          f'sum(sum_over_time({ev(CP)} | unwrap pre_tokens | __error__="" [{RNG}]))',
+         "percentunit", 0, y + 4, 4, 4, ds=LOKI, nv="n/a", desc="Share of the context removed by compactions in the range."),
+    ts("Context size before and after compaction",
+       [(f'avg_over_time({ev(CP)} | unwrap pre_tokens | __error__="" [$__auto]) by (trigger)', "before ({{trigger}})"),
+        (f'avg_over_time({ev(CP)} | unwrap post_tokens | __error__="" [$__auto]) by (trigger)', "after ({{trigger}})")],
+       "short", 4, y, 7, 8, ds=LOKI, bars=True, desc="Tokens in context when a compaction ran, and what was left afterwards."),
+    ts("Compaction duration", [(f'avg_over_time({ev(CP)} | unwrap duration_ms | __error__="" [$__auto]) by (trigger)', "{{trigger}}")], "ms", 11, y, 5, 8,
+       ds=LOKI, bars=True, desc="How long a compaction took. Claude is busy summarising during this time."),
+    count_table("Compactions by trigger", cnt(CP, "trigger, success"), [("trigger", "Trigger"), ("success", "OK")], 16, y, 8, 8,
+                desc="auto = the context window filled up; manual = /compact. OK=false means the compaction failed."),
+]
+y += 8
 
 # ============================================================================== Traces
 panels.append(row("Traces (span metrics + Tempo)", y)); y += 1

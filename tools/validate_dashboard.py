@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 """Run every query of dashboards/claude-code.json against Grafana's datasources and report results.
-Needs GRAFANA_PASSWORD in the environment (never stored in files).
+Uses GRAFANA_PASSWORD from the environment when set (never stored in files); otherwise queries run anonymously.
 
   tools/validate_dashboard.py [dashboard.json] [--range 15m|3h|24h|7d]   (default 3h; use several ranges to check scaling)
 """
 import base64, json, os, sys, time, urllib.parse, urllib.request
 G = os.environ.get("GRAFANA_URL", "http://127.0.0.1:3000")
-if "GRAFANA_PASSWORD" not in os.environ:
-    sys.exit("Set GRAFANA_PASSWORD to the Grafana admin password, e.g.  GRAFANA_PASSWORD=... python3 tools/validate_dashboard.py")
-auth = "Basic " + base64.b64encode(f"admin:{os.environ['GRAFANA_PASSWORD']}".encode()).decode()
+# Without GRAFANA_PASSWORD the queries run anonymously, which works when anonymous viewing is enabled.
+auth = "Basic " + base64.b64encode(f"admin:{os.environ['GRAFANA_PASSWORD']}".encode()).decode() if "GRAFANA_PASSWORD" in os.environ else None
 args = [a for a in sys.argv[1:] if not a.startswith("--")]
 rng = sys.argv[sys.argv.index("--range") + 1] if "--range" in sys.argv else "3h"
 args = [a for a in args if a != rng]
@@ -23,7 +22,7 @@ def fix(s):
     for k, v in sorted(sub.items(), key=lambda kv: -len(kv[0])): s = s.replace(k, v)
     return s
 def get(path, params):
-    req = urllib.request.Request(G + path + "?" + urllib.parse.urlencode(params), headers={"Authorization": auth})
+    req = urllib.request.Request(G + path + "?" + urllib.parse.urlencode(params), headers={"Authorization": auth} if auth else {})
     try:
         with urllib.request.urlopen(req, timeout=60) as r: return json.load(r)
     except urllib.error.HTTPError as e: return {"status": "error", "error": e.read().decode()[:300]}
