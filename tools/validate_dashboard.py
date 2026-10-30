@@ -17,7 +17,7 @@ secs = {"m": 60, "h": 3600, "d": 86400}[rng[-1]] * int(rng[:-1])
 now = int(time.time()); start = now - secs
 # Grafana picks roughly range / 600 points, never finer than 15 s; the rate interval is at least 4x the step
 step = max(15, secs // 600)
-sub = {"$__interval_ms": str(step * 1000), "$__rate_interval_ms": str(max(step * 4, 60) * 1000), "$__rate_interval": f"{max(step * 4, 60)}s", "$__interval": f"{step}s", "$__auto": f"{step}s", "$__range": rng, "$model": ".*"}
+sub = {"$__interval_ms": str(step * 1000), "$__rate_interval_ms": str(max(step * 4, 60) * 1000), "$__rate_interval": f"{max(step * 4, 60)}s", "$__interval": f"{step}s", "$__auto": f"{step}s", "$__range": rng, "$model": ".*", "$host": ".*"}
 def fix(s):
     for k, v in sorted(sub.items(), key=lambda kv: -len(kv[0])): s = s.replace(k, v)
     return s

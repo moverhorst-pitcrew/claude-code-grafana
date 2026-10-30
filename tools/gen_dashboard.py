@@ -18,7 +18,7 @@ Design notes
     log events instead.
   * Reading order: Overview (numbers) -> Cost -> Productivity -> API -> Tools -> Subagents -> Hooks/compaction -> Traces -> Events.
 """
-import json
+import json, re
 
 PROM = {"type": "prometheus", "uid": "prometheus"}
 LOKI = {"type": "loki", "uid": "loki"}
@@ -459,6 +459,14 @@ panels += [
              legend="{{service_version}}", desc="Cost per Claude Code version, so a release that changes your spend stands out."),
 ]
 y += 8
+panels += [
+    bargauge("Cost by host", f"sort_desc(sum by (host_name) (max_over_time({COST}{M}[{RNG}])))", "currencyUSD", 0, y, w=12, h=7,
+             legend="{{host_name}}", desc="Cost per machine. Needs OTEL_RESOURCE_ATTRIBUTES=host.name=<name> on each Claude Code install "
+             "(claude/apply-claude-settings.py sets it); data from before that shows as one unnamed host."),
+    bargauge("Requests by host", cnt("api_request", "host_name"), "short", 12, y, w=12, h=7, ds=LOKI,
+             legend="{{host_name}}", desc="API requests per machine in the selected range."),
+]
+y += 7
 
 # ============================================================================== Productivity
 panels.append(row("Productivity", y)); y += 1
@@ -773,6 +781,19 @@ for pnl in panels:
     for col, props in CELL_STYLES.get(title, {}).items():
         pnl["fieldConfig"]["overrides"].append({"matcher": {"id": "byName", "options": col}, "properties": props})
 
+def scope_to_host(expr, loki):
+    """Add the $host filter to a query. 'All' is ".*", which also matches data that has no host_name."""
+    if loki:
+        return expr.replace(L, L + ' | host_name=~"$host"')
+    expr = re.sub(r'\b(claude_code_\w+)\{', r'\1{host_name=~"$host",', expr)
+    return re.sub(r'\b(claude_code_\w+)(?![{\w])', r'\1{host_name=~"$host"}', expr)
+
+
+for pnl in panels:
+    for t in pnl.get("targets", []):
+        if "expr" in t and "host_name=~" not in t["expr"]:
+            t["expr"] = scope_to_host(t["expr"], t["datasource"] == LOKI)
+
 dashboard = {
     "uid": "claude-code",
     "title": "Claude Code",
@@ -791,7 +812,12 @@ dashboard = {
         "definition": f"label_values({TOK}, model)",
         "refresh": 2, "includeAll": True,
         "regex": "/^(?<value>claude-(?<text>[a-z]+(?:-\\d+)*?)(?:-\\d{8})?)$/", "multi": True, "allValue": ".*",
-        "current": {"selected": True, "text": "All", "value": "$__all"}, "sort": 1}]},
+        "current": {"selected": True, "text": "All", "value": "$__all"}, "sort": 1},
+        {"name": "host", "label": "Host", "type": "query", "datasource": PROM,
+         "query": {"query": f"label_values({SESS}, host_name)", "refId": "h"},
+         "definition": f"label_values({SESS}, host_name)",
+         "refresh": 2, "includeAll": True, "multi": True, "allValue": ".*",
+         "current": {"selected": True, "text": "All", "value": "$__all"}, "sort": 1}]},
     "annotations": {"list": [{
         "name": "Prompts", "enable": False, "iconColor": "blue", "datasource": LOKI,
         "expr": f'{L} | event_name="user_prompt"', "titleFormat": "Prompt", "textFormat": "{{prompt_length}} chars",

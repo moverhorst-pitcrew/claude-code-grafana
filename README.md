@@ -105,7 +105,7 @@ Please read this first:
 
 - It reads your Claude Code login from `~/.claude/.credentials.json` (or `$CLAUDE_CONFIG_DIR`) and calls `https://api.anthropic.com/api/oauth/usage`, an **undocumented endpoint** that may change or be restricted at any time.
 - The access token is used in memory for that single request. It is never printed, logged or stored, and the poller never refreshes it (that would log Claude Code out). The code is short: [`usage-poller/poll_usage.py`](usage-poller/poll_usage.py).
-- It polls every 4 minutes and backs off after an HTTP 429. The "Usage data age" tile shows how fresh the data is.
+- It polls at most every 4 minutes (`CLAUDE_USAGE_MIN_INTERVAL`). The endpoint answers HTTP 429 with `Retry-After: 0`, so after a 429 it backs off exponentially (2, 4, 8 minutes, capped at 10) until a poll succeeds. The "Usage data age" tile shows how fresh the data is.
 - It only works where the login is a file (Linux). macOS Keychain and Windows storage are not supported.
 - Dry run without sending anything: `python3 usage-poller/poll_usage.py --dry-run`.
 
@@ -165,6 +165,7 @@ docker run -d --name otel-lgtm --restart unless-stopped \
   -v "$PWD/dashboards:/claude-dashboards:ro" \
   docker.io/grafana/otel-lgtm
 python3 claude/apply-claude-settings.py        # point Claude Code at it
+# also sets OTEL_RESOURCE_ATTRIBUTES=host.name=<hostname>; override with CLAUDE_HOST_NAME=laptop python3 claude/apply-claude-settings.py
 ```
 
 ## Operating it
@@ -188,6 +189,7 @@ Data lives in `~/.local/share/otel-lgtm`; delete that folder to wipe all stored 
 | Stack does not start at boot | Lingering is off: run `sudo loginctl enable-linger $USER`. |
 | "Port already in use" | Something else uses 3000, 4317 or 4318 on localhost. Free it and re-run `./install.sh`. |
 | Tiles fail or totals look short on long ranges | Loki rejects queries over 30 days, and `otel-lgtm` keeps 15 days of metrics by default, so cost and token totals cover at most that. |
+| One host's data is missing from a Host filter | The Host variable uses the `host.name` resource attribute. Run `claude/apply-claude-settings.py` on that machine (or set `OTEL_RESOURCE_ATTRIBUTES=host.name=<name>` for Claude Code in a container). Data from before that has no host and only shows under *All*. |
 | "Usage data age" is orange or red | The poller is rate limited (HTTP 429) or your login token expired. It recovers once Claude Code has refreshed the token, which any use does. |
 
 ## Privacy and security

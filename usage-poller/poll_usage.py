@@ -16,6 +16,7 @@ from datetime import datetime
 OTLP = os.environ.get("CLAUDE_USAGE_OTLP_URL", "http://127.0.0.1:4318/v1/metrics")
 USAGE_URL = "https://api.anthropic.com/api/oauth/usage"
 WINDOW = {"session": 18000, "weekly": 604800}       # 5 hours / 7 days, from the Claude Code client
+MIN_INTERVAL = int(os.environ.get("CLAUDE_USAGE_MIN_INTERVAL", "240"))   # seconds between successful polls
 now = time.time()
 
 
@@ -29,20 +30,39 @@ def epoch(iso):
 STATE = os.path.join(os.environ.get("STATE_DIRECTORY") or os.path.expanduser("~/.local/state/claude-usage-poller"), "retry_after_until")
 
 
-def backoff_active():
-    """The usage endpoint rate-limits. After a 429 we stay quiet until its Retry-After has passed."""
+def _state():
     try:
-        return float(open(STATE).read()) > now
+        d = json.load(open(STATE))
+        return d if isinstance(d, dict) else {}
     except Exception:
-        return False
+        return {}
 
 
-def set_backoff(seconds):
+def _save(until, fails):
     try:
         os.makedirs(os.path.dirname(STATE), exist_ok=True)
-        open(STATE, "w").write(str(now + seconds))
+        json.dump({"until": until, "fails": fails}, open(STATE, "w"))
     except OSError:
         pass
+
+
+def backoff_active():
+    """Stay quiet until the next allowed poll: MIN_INTERVAL after a success, a growing delay after a 429."""
+    return _state().get("until", 0) > now
+
+
+def set_backoff(retry_after):
+    """The usage endpoint rate-limits and often answers 429 with Retry-After: 0, so that header alone is useless.
+    Back off exponentially (2, 4, 8 ... up to 10 min) on consecutive 429s, honouring a longer Retry-After.
+    The cap stays under the 15 min last_over_time window the dashboard uses, so its tiles do not go empty."""
+    fails = _state().get("fails", 0) + 1
+    wait = min(max(retry_after, 60 * 2 ** (fails - 1)), 600)
+    _save(now + wait, fails)
+    return wait
+
+
+def set_next_poll():
+    _save(now + MIN_INTERVAL - 5, 0)
 
 
 def creds():
@@ -157,16 +177,17 @@ def main():
                 failure(out, f"http-{e.code}")
                 if e.code == 429:
                     try:
-                        wait = int(e.headers.get("Retry-After", ""))
+                        retry_after = int(e.headers.get("Retry-After", ""))
                     except ValueError:
-                        wait = 900
-                    set_backoff(min(max(wait, 60), 3600))
-                    print(f"rate limited; backing off {min(max(wait, 60), 3600)} s (Retry-After: {e.headers.get('Retry-After')})", file=sys.stderr)
+                        retry_after = 0
+                    wait = set_backoff(retry_after)
+                    print(f"rate limited; backing off {wait} s (Retry-After: {e.headers.get('Retry-After')})", file=sys.stderr)
                 usage = None
             except Exception as e:
                 failure(out, type(e).__name__)
                 usage = None
             if usage is not None:
+                set_next_poll()
                 try:
                     collect(out, usage, meta)
                 except Exception as e:   # response shape changed: report it instead of pushing partial data

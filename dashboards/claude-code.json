@@ -42,6 +42,30 @@
           "value": "$__all"
         },
         "sort": 1
+      },
+      {
+        "name": "host",
+        "label": "Host",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "query": {
+          "query": "label_values(claude_code_session_count_total, host_name)",
+          "refId": "h"
+        },
+        "definition": "label_values(claude_code_session_count_total, host_name)",
+        "refresh": 2,
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "sort": 1
       }
     ]
   },
@@ -97,7 +121,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum(count_over_time({service_name=\"claude-code\"} | event_name=\"api_error\" [$__range])) or vector(0)",
+          "expr": "sum(count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_error\" [$__range])) or vector(0)",
           "legendFormat": "",
           "refId": "A",
           "queryType": "instant"
@@ -162,7 +186,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum(count_over_time({service_name=\"claude-code\"} | event_name=\"mcp_server_connection\" | status=\"failed\" [$__range])) or vector(0)",
+          "expr": "sum(count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"mcp_server_connection\" | status=\"failed\" [$__range])) or vector(0)",
           "legendFormat": "",
           "refId": "A",
           "queryType": "instant"
@@ -227,7 +251,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "((((sum(count_over_time({service_name=\"claude-code\"} | event_name=\"tool_result\" | success=\"false\" [$__range])) or vector(0)) + 1) / ((sum(count_over_time({service_name=\"claude-code\"} | event_name=\"tool_result\" [$__range])) or vector(0)) + 2)) / (((sum(count_over_time({service_name=\"claude-code\"} | event_name=\"tool_result\" | success=\"false\" [7d])) or vector(0)) + 1) / ((sum(count_over_time({service_name=\"claude-code\"} | event_name=\"tool_result\" [7d])) or vector(0)) + 2)))",
+          "expr": "((((sum(count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"tool_result\" | success=\"false\" [$__range])) or vector(0)) + 1) / ((sum(count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"tool_result\" [$__range])) or vector(0)) + 2)) / (((sum(count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"tool_result\" | success=\"false\" [7d])) or vector(0)) + 1) / ((sum(count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"tool_result\" [7d])) or vector(0)) + 2)))",
           "legendFormat": "",
           "refId": "A",
           "queryType": "instant"
@@ -297,7 +321,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "(sum(max_over_time(claude_code_token_usage_tokens_total{type=\"cacheRead\",model=~\"$model\"}[$__range])) / sum(max_over_time(claude_code_token_usage_tokens_total{type=~\"cacheRead|input|cacheCreation\",model=~\"$model\"}[$__range]))) / (sum(max_over_time(claude_code_token_usage_tokens_total{type=\"cacheRead\",model=~\"$model\"}[7d])) / sum(max_over_time(claude_code_token_usage_tokens_total{type=~\"cacheRead|input|cacheCreation\",model=~\"$model\"}[7d])))",
+          "expr": "(sum(max_over_time(claude_code_token_usage_tokens_total{host_name=~\"$host\",type=\"cacheRead\",model=~\"$model\"}[$__range])) / sum(max_over_time(claude_code_token_usage_tokens_total{host_name=~\"$host\",type=~\"cacheRead|input|cacheCreation\",model=~\"$model\"}[$__range]))) / (sum(max_over_time(claude_code_token_usage_tokens_total{host_name=~\"$host\",type=\"cacheRead\",model=~\"$model\"}[7d])) / sum(max_over_time(claude_code_token_usage_tokens_total{host_name=~\"$host\",type=~\"cacheRead|input|cacheCreation\",model=~\"$model\"}[7d])))",
           "legendFormat": "",
           "refId": "A",
           "instant": true,
@@ -368,7 +392,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "quantile_over_time(0.95, {service_name=\"claude-code\"} | event_name=\"api_request\" | unwrap duration_ms | __error__=\"\" [$__range]) by () / quantile_over_time(0.95, {service_name=\"claude-code\"} | event_name=\"api_request\" | unwrap duration_ms | __error__=\"\" [7d]) by ()",
+          "expr": "quantile_over_time(0.95, {service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap duration_ms | __error__=\"\" [$__range]) by () / quantile_over_time(0.95, {service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap duration_ms | __error__=\"\" [7d]) by ()",
           "legendFormat": "",
           "refId": "A",
           "queryType": "instant"
@@ -438,7 +462,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "quantile_over_time(0.95, {service_name=\"claude-code\"} | event_name=\"api_request\" | unwrap ttft_ms | __error__=\"\" [$__range]) by () / quantile_over_time(0.95, {service_name=\"claude-code\"} | event_name=\"api_request\" | unwrap ttft_ms | __error__=\"\" [7d]) by ()",
+          "expr": "quantile_over_time(0.95, {service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap ttft_ms | __error__=\"\" [$__range]) by () / quantile_over_time(0.95, {service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap ttft_ms | __error__=\"\" [7d]) by ()",
           "legendFormat": "",
           "refId": "A",
           "queryType": "instant"
@@ -508,7 +532,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "(sum(sum_over_time({service_name=\"claude-code\"} | event_name=\"api_request\" | unwrap cost_usd | __error__=\"\" [$__range])) / sum(count_over_time({service_name=\"claude-code\"} | event_name=\"api_request\" [$__range]))) / (sum(sum_over_time({service_name=\"claude-code\"} | event_name=\"api_request\" | unwrap cost_usd | __error__=\"\" [7d])) / sum(count_over_time({service_name=\"claude-code\"} | event_name=\"api_request\" [7d])))",
+          "expr": "(sum(sum_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap cost_usd | __error__=\"\" [$__range])) / sum(count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" [$__range]))) / (sum(sum_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap cost_usd | __error__=\"\" [7d])) / sum(count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" [7d])))",
           "legendFormat": "",
           "refId": "A",
           "queryType": "instant"
@@ -1691,7 +1715,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(max_over_time(claude_code_session_count_total[$__range]))",
+          "expr": "sum(max_over_time(claude_code_session_count_total{host_name=~\"$host\"}[$__range]))",
           "legendFormat": "",
           "refId": "A",
           "instant": true,
@@ -1745,7 +1769,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum(count_over_time({service_name=\"claude-code\"} | event_name=\"user_prompt\" [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"user_prompt\" [$__range]))",
           "legendFormat": "",
           "refId": "A",
           "queryType": "instant"
@@ -1798,7 +1822,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(max_over_time(claude_code_active_time_seconds_total[$__range]))",
+          "expr": "sum(max_over_time(claude_code_active_time_seconds_total{host_name=~\"$host\"}[$__range]))",
           "legendFormat": "",
           "refId": "A",
           "instant": true,
@@ -1853,7 +1877,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(max_over_time(claude_code_cost_usage_USD_total{model=~\"$model\"}[$__range]))",
+          "expr": "sum(max_over_time(claude_code_cost_usage_USD_total{host_name=~\"$host\",model=~\"$model\"}[$__range]))",
           "legendFormat": "",
           "refId": "A",
           "instant": true,
@@ -1908,7 +1932,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(max_over_time(claude_code_token_usage_tokens_total{model=~\"$model\"}[$__range]))",
+          "expr": "sum(max_over_time(claude_code_token_usage_tokens_total{host_name=~\"$host\",model=~\"$model\"}[$__range]))",
           "legendFormat": "",
           "refId": "A",
           "instant": true,
@@ -1962,7 +1986,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(max_over_time(claude_code_cost_usage_USD_total{model=~\"$model\"}[$__range])) / clamp_min(sum(max_over_time(claude_code_session_count_total[$__range])), 1)",
+          "expr": "sum(max_over_time(claude_code_cost_usage_USD_total{host_name=~\"$host\",model=~\"$model\"}[$__range])) / clamp_min(sum(max_over_time(claude_code_session_count_total{host_name=~\"$host\"}[$__range])), 1)",
           "legendFormat": "",
           "refId": "A",
           "instant": true,
@@ -2017,7 +2041,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(max_over_time(claude_code_token_usage_tokens_total{type=\"cacheRead\",model=~\"$model\"}[$__range])) / clamp_min(sum(max_over_time(claude_code_token_usage_tokens_total{type=~\"cacheRead|input|cacheCreation\",model=~\"$model\"}[$__range])), 1)",
+          "expr": "sum(max_over_time(claude_code_token_usage_tokens_total{host_name=~\"$host\",type=\"cacheRead\",model=~\"$model\"}[$__range])) / clamp_min(sum(max_over_time(claude_code_token_usage_tokens_total{host_name=~\"$host\",type=~\"cacheRead|input|cacheCreation\",model=~\"$model\"}[$__range])), 1)",
           "legendFormat": "",
           "refId": "A",
           "instant": true,
@@ -2088,7 +2112,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum(count_over_time({service_name=\"claude-code\"} | event_name=\"api_request\" [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" [$__range]))",
           "legendFormat": "",
           "refId": "A",
           "queryType": "instant"
@@ -2141,7 +2165,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "quantile_over_time(0.95, {service_name=\"claude-code\"} | event_name=\"api_request\" | unwrap duration_ms | __error__=\"\" [$__range]) by ()",
+          "expr": "quantile_over_time(0.95, {service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap duration_ms | __error__=\"\" [$__range]) by ()",
           "legendFormat": "",
           "refId": "A",
           "queryType": "instant"
@@ -2195,7 +2219,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum(count_over_time({service_name=\"claude-code\"} | event_name=\"tool_result\" | success=\"true\" [$__range])) / sum(count_over_time({service_name=\"claude-code\"} | event_name=\"tool_result\" [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"tool_result\" | success=\"true\" [$__range])) / sum(count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"tool_result\" [$__range]))",
           "legendFormat": "",
           "refId": "A",
           "queryType": "instant"
@@ -2265,7 +2289,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(max_over_time(claude_code_lines_of_code_count_total{model=~\"$model\"}[$__range]))",
+          "expr": "sum(max_over_time(claude_code_lines_of_code_count_total{host_name=~\"$host\",model=~\"$model\"}[$__range]))",
           "legendFormat": "",
           "refId": "A",
           "instant": true,
@@ -2319,7 +2343,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(max_over_time(claude_code_commit_count_total[$__range]))",
+          "expr": "sum(max_over_time(claude_code_commit_count_total{host_name=~\"$host\"}[$__range]))",
           "legendFormat": "",
           "refId": "A",
           "instant": true,
@@ -2373,7 +2397,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(max_over_time(claude_code_pull_request_count_total[$__range]))",
+          "expr": "sum(max_over_time(claude_code_pull_request_count_total{host_name=~\"$host\"}[$__range]))",
           "legendFormat": "",
           "refId": "A",
           "instant": true,
@@ -2440,7 +2464,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "(sum by (model) (sum_over_time({service_name=\"claude-code\"} | event_name=\"api_request\" | unwrap cost_usd | __error__=\"\" [$__auto]))) * 3600000 / $__interval_ms",
+          "expr": "(sum by (model) (sum_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap cost_usd | __error__=\"\" [$__auto]))) * 3600000 / $__interval_ms",
           "legendFormat": "{{model}}",
           "refId": "A",
           "queryType": "range"
@@ -2588,7 +2612,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "(sum(sum_over_time({service_name=\"claude-code\"} | event_name=\"api_request\" | unwrap input_tokens | __error__=\"\" [$__auto]))) * 60000 / $__interval_ms",
+          "expr": "(sum(sum_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap input_tokens | __error__=\"\" [$__auto]))) * 60000 / $__interval_ms",
           "legendFormat": "input",
           "refId": "A",
           "queryType": "range"
@@ -2598,7 +2622,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "(sum(sum_over_time({service_name=\"claude-code\"} | event_name=\"api_request\" | unwrap output_tokens | __error__=\"\" [$__auto]))) * 60000 / $__interval_ms",
+          "expr": "(sum(sum_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap output_tokens | __error__=\"\" [$__auto]))) * 60000 / $__interval_ms",
           "legendFormat": "output",
           "refId": "B",
           "queryType": "range"
@@ -2608,7 +2632,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "(sum(sum_over_time({service_name=\"claude-code\"} | event_name=\"api_request\" | unwrap cache_read_tokens | __error__=\"\" [$__auto]))) * 60000 / $__interval_ms",
+          "expr": "(sum(sum_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap cache_read_tokens | __error__=\"\" [$__auto]))) * 60000 / $__interval_ms",
           "legendFormat": "cacheRead",
           "refId": "C",
           "queryType": "range"
@@ -2618,7 +2642,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "(sum(sum_over_time({service_name=\"claude-code\"} | event_name=\"api_request\" | unwrap cache_creation_tokens | __error__=\"\" [$__auto]))) * 60000 / $__interval_ms",
+          "expr": "(sum(sum_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap cache_creation_tokens | __error__=\"\" [$__auto]))) * 60000 / $__interval_ms",
           "legendFormat": "cacheCreation",
           "refId": "D",
           "queryType": "range"
@@ -2718,7 +2742,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sort_desc(sum by (model) (max_over_time(claude_code_cost_usage_USD_total{model=~\"$model\"}[$__range])))",
+          "expr": "sort_desc(sum by (model) (max_over_time(claude_code_cost_usage_USD_total{host_name=~\"$host\",model=~\"$model\"}[$__range])))",
           "legendFormat": "{{model}}",
           "refId": "A",
           "instant": true,
@@ -2868,7 +2892,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sort_desc(sum by (query_source) (max_over_time(claude_code_cost_usage_USD_total{model=~\"$model\"}[$__range])))",
+          "expr": "sort_desc(sum by (query_source) (max_over_time(claude_code_cost_usage_USD_total{host_name=~\"$host\",model=~\"$model\"}[$__range])))",
           "legendFormat": "{{query_source}}",
           "refId": "A",
           "instant": true,
@@ -2942,7 +2966,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sort_desc(label_replace(sum by (effort) (max_over_time(claude_code_cost_usage_USD_total{model=~\"$model\"}[$__range])), \"effort\", \"not set\", \"effort\", \"^$\"))",
+          "expr": "sort_desc(label_replace(sum by (effort) (max_over_time(claude_code_cost_usage_USD_total{host_name=~\"$host\",model=~\"$model\"}[$__range])), \"effort\", \"not set\", \"effort\", \"^$\"))",
           "legendFormat": "{{effort}}",
           "refId": "A",
           "instant": true,
@@ -3016,7 +3040,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sort_desc(sum by (type) (max_over_time(claude_code_token_usage_tokens_total{model=~\"$model\"}[$__range])))",
+          "expr": "sort_desc(sum by (type) (max_over_time(claude_code_token_usage_tokens_total{host_name=~\"$host\",model=~\"$model\"}[$__range])))",
           "legendFormat": "{{type}}",
           "refId": "A",
           "instant": true,
@@ -3117,7 +3141,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "topk(10, sum by (session, user_email) (label_replace(max_over_time(claude_code_cost_usage_USD_total{model=~\"$model\"}[$__range]), \"session\", \"$1\", \"session_id\", \"(.{8}).*\")))",
+          "expr": "topk(10, sum by (session, user_email) (label_replace(max_over_time(claude_code_cost_usage_USD_total{host_name=~\"$host\",model=~\"$model\"}[$__range]), \"session\", \"$1\", \"session_id\", \"(.{8}).*\")))",
           "legendFormat": "",
           "refId": "A",
           "instant": true,
@@ -3238,7 +3262,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "avg_over_time({service_name=\"claude-code\"} | event_name=\"api_request\" | unwrap cost_usd | __error__=\"\" [$__auto]) by (model)",
+          "expr": "avg_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap cost_usd | __error__=\"\" [$__auto]) by (model)",
           "legendFormat": "{{model}}",
           "refId": "A",
           "queryType": "range"
@@ -3386,7 +3410,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sort_desc(sum by (agent_name) (max_over_time(claude_code_cost_usage_USD_total{agent_name!=\"\",model=~\"$model\"}[$__range])))",
+          "expr": "sort_desc(sum by (agent_name) (max_over_time(claude_code_cost_usage_USD_total{host_name=~\"$host\",agent_name!=\"\",model=~\"$model\"}[$__range])))",
           "legendFormat": "{{agent_name}}",
           "refId": "A",
           "instant": true,
@@ -3460,7 +3484,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sort_desc(sum by (mcp_server_name) (max_over_time(claude_code_cost_usage_USD_total{mcp_server_name!=\"\",model=~\"$model\"}[$__range])))",
+          "expr": "sort_desc(sum by (mcp_server_name) (max_over_time(claude_code_cost_usage_USD_total{host_name=~\"$host\",mcp_server_name!=\"\",model=~\"$model\"}[$__range])))",
           "legendFormat": "{{mcp_server_name}}",
           "refId": "A",
           "instant": true,
@@ -3534,7 +3558,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "topk(5, sum by (mcp_server_name, mcp_tool_name) (max_over_time(claude_code_token_usage_tokens_total{mcp_tool_name!=\"\",model=~\"$model\"}[$__range])))",
+          "expr": "topk(5, sum by (mcp_server_name, mcp_tool_name) (max_over_time(claude_code_token_usage_tokens_total{host_name=~\"$host\",mcp_tool_name!=\"\",model=~\"$model\"}[$__range])))",
           "legendFormat": "{{mcp_server_name}} / {{mcp_tool_name}}",
           "refId": "A",
           "instant": true,
@@ -3607,7 +3631,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sort_desc(sum by (service_version) (max_over_time(claude_code_cost_usage_USD_total{model=~\"$model\"}[$__range])))",
+          "expr": "sort_desc(sum by (service_version) (max_over_time(claude_code_cost_usage_USD_total{host_name=~\"$host\",model=~\"$model\"}[$__range])))",
           "legendFormat": "{{service_version}}",
           "refId": "A",
           "instant": true,
@@ -3662,25 +3686,171 @@
     },
     {
       "id": 52,
+      "type": "bargauge",
+      "title": "Cost by host",
+      "description": "Cost per machine. Needs OTEL_RESOURCE_ATTRIBUTES=host.name=<name> on each Claude Code install (claude/apply-claude-settings.py sets it); data from before that shows as one unnamed host.",
+      "gridPos": {
+        "x": 0,
+        "y": 67,
+        "w": 12,
+        "h": 7
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sort_desc(sum by (host_name) (max_over_time(claude_code_cost_usage_USD_total{host_name=~\"$host\",model=~\"$model\"}[$__range])))",
+          "legendFormat": "{{host_name}}",
+          "refId": "A",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
+          "noValue": "none in this range",
+          "min": 0,
+          "displayName": "${__field.labels.host_name}",
+          "decimals": 4
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": true,
+        "valueMode": "color",
+        "namePlacement": "top",
+        "sizing": "manual",
+        "minVizHeight": 26,
+        "maxVizHeight": 34,
+        "minVizWidth": 8,
+        "text": {
+          "titleSize": 13,
+          "valueSize": 14
+        },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false,
+          "fields": ""
+        }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        }
+      ]
+    },
+    {
+      "id": 53,
+      "type": "bargauge",
+      "title": "Requests by host",
+      "description": "API requests per machine in the selected range.",
+      "gridPos": {
+        "x": 12,
+        "y": 67,
+        "w": 12,
+        "h": 7
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "sum by (host_name) (count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" [$__range]))",
+          "legendFormat": "{{host_name}}",
+          "refId": "A",
+          "queryType": "instant"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "si:",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
+          "noValue": "none in this range",
+          "min": 0,
+          "displayName": "${__field.labels.host_name}"
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": true,
+        "valueMode": "color",
+        "namePlacement": "top",
+        "sizing": "manual",
+        "minVizHeight": 26,
+        "maxVizHeight": 34,
+        "minVizWidth": 8,
+        "text": {
+          "titleSize": 13,
+          "valueSize": 14
+        },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false,
+          "fields": ""
+        }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        }
+      ]
+    },
+    {
+      "id": 54,
       "type": "row",
       "title": "Productivity",
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 67,
+        "y": 74,
         "w": 24,
         "h": 1
       },
       "panels": []
     },
     {
-      "id": 53,
+      "id": 55,
       "type": "bargauge",
       "title": "Lines added vs removed",
       "description": "Lines changed by Claude's edits in the selected range.",
       "gridPos": {
         "x": 0,
-        "y": 68,
+        "y": 75,
         "w": 6,
         "h": 7
       },
@@ -3694,7 +3864,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum by (type) (max_over_time(claude_code_lines_of_code_count_total{model=~\"$model\"}[$__range]))",
+          "expr": "sum by (type) (max_over_time(claude_code_lines_of_code_count_total{host_name=~\"$host\",model=~\"$model\"}[$__range]))",
           "legendFormat": "{{type}}",
           "refId": "A",
           "instant": true,
@@ -3747,13 +3917,13 @@
       ]
     },
     {
-      "id": 54,
+      "id": 56,
       "type": "bargauge",
       "title": "Edit decisions",
       "description": "Permission decisions for Edit, Write and NotebookEdit.",
       "gridPos": {
         "x": 6,
-        "y": 68,
+        "y": 75,
         "w": 6,
         "h": 7
       },
@@ -3767,7 +3937,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum by (tool_name, decision) (max_over_time(claude_code_code_edit_tool_decision_total[$__range]))",
+          "expr": "sum by (tool_name, decision) (max_over_time(claude_code_code_edit_tool_decision_total{host_name=~\"$host\"}[$__range]))",
           "legendFormat": "{{tool_name}} / {{decision}}",
           "refId": "A",
           "instant": true,
@@ -3820,13 +3990,13 @@
       ]
     },
     {
-      "id": 55,
+      "id": 57,
       "type": "bargauge",
       "title": "Edits by language",
       "description": "",
       "gridPos": {
         "x": 12,
-        "y": 68,
+        "y": 75,
         "w": 6,
         "h": 7
       },
@@ -3840,7 +4010,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sort_desc(sum by (language) (max_over_time(claude_code_code_edit_tool_decision_total[$__range])))",
+          "expr": "sort_desc(sum by (language) (max_over_time(claude_code_code_edit_tool_decision_total{host_name=~\"$host\"}[$__range])))",
           "legendFormat": "{{language}}",
           "refId": "A",
           "instant": true,
@@ -3893,13 +4063,13 @@
       ]
     },
     {
-      "id": 56,
+      "id": 58,
       "type": "stat",
       "title": "Edit accept rate",
       "description": "Share of edit permission prompts accepted.",
       "gridPos": {
         "x": 18,
-        "y": 68,
+        "y": 75,
         "w": 6,
         "h": 7
       },
@@ -3913,7 +4083,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(max_over_time(claude_code_code_edit_tool_decision_total{decision=\"accept\"}[$__range])) / sum(max_over_time(claude_code_code_edit_tool_decision_total[$__range]))",
+          "expr": "sum(max_over_time(claude_code_code_edit_tool_decision_total{host_name=~\"$host\",decision=\"accept\"}[$__range])) / sum(max_over_time(claude_code_code_edit_tool_decision_total{host_name=~\"$host\"}[$__range]))",
           "legendFormat": "",
           "refId": "A",
           "instant": true,
@@ -3964,13 +4134,13 @@
       }
     },
     {
-      "id": 57,
+      "id": 59,
       "type": "timeseries",
       "title": "Prompts per hour",
       "description": "How often you prompt (user_prompt events). Shown as a rate per hour, so the scale is the same at every time range.",
       "gridPos": {
         "x": 0,
-        "y": 75,
+        "y": 82,
         "w": 8,
         "h": 8
       },
@@ -3984,7 +4154,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "(sum(count_over_time({service_name=\"claude-code\"} | event_name=\"user_prompt\" [$__auto]))) * 3600000 / $__interval_ms",
+          "expr": "(sum(count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"user_prompt\" [$__auto]))) * 3600000 / $__interval_ms",
           "legendFormat": "prompts",
           "refId": "A",
           "queryType": "range"
@@ -4036,13 +4206,13 @@
       ]
     },
     {
-      "id": 58,
+      "id": 60,
       "type": "timeseries",
       "title": "Activity share by type",
       "description": "Share of time spent active, summed over sessions (above 100% means several sessions at once). user = you typing/reading; cli = Claude working.",
       "gridPos": {
         "x": 8,
-        "y": 75,
+        "y": 82,
         "w": 8,
         "h": 8
       },
@@ -4056,7 +4226,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum by (type) (rate(claude_code_active_time_seconds_total[$__rate_interval]))",
+          "expr": "sum by (type) (rate(claude_code_active_time_seconds_total{host_name=~\"$host\"}[$__rate_interval]))",
           "legendFormat": "{{type}}",
           "refId": "A",
           "instant": false,
@@ -4123,13 +4293,13 @@
       ]
     },
     {
-      "id": 59,
+      "id": 61,
       "type": "timeseries",
       "title": "Sessions started per hour",
       "description": "Sessions that began in each interval (fresh / continue / resume). Shown as a rate per hour, so the scale is the same at every time range.",
       "gridPos": {
         "x": 16,
-        "y": 75,
+        "y": 82,
         "w": 8,
         "h": 8
       },
@@ -4143,7 +4313,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "(sum by (start_type) (claude_code_session_count_total unless claude_code_session_count_total offset $__interval)) * 3600000 / $__interval_ms",
+          "expr": "(sum by (start_type) (claude_code_session_count_total{host_name=~\"$host\"} unless claude_code_session_count_total{host_name=~\"$host\"} offset $__interval)) * 3600000 / $__interval_ms",
           "legendFormat": "{{start_type}}",
           "refId": "A",
           "instant": false,
@@ -4196,26 +4366,26 @@
       ]
     },
     {
-      "id": 60,
+      "id": 62,
       "type": "row",
       "title": "API performance (from api_request logs)",
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 83,
+        "y": 90,
         "w": 24,
         "h": 1
       },
       "panels": []
     },
     {
-      "id": 61,
+      "id": 63,
       "type": "timeseries",
       "title": "API latency p50 / p95",
       "description": "Dashed lines: your own p95 over the last 7 days, and 1.5x that (where the Health tile turns orange).",
       "gridPos": {
         "x": 0,
-        "y": 84,
+        "y": 91,
         "w": 8,
         "h": 8
       },
@@ -4229,7 +4399,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "quantile_over_time(0.5, {service_name=\"claude-code\"} | event_name=\"api_request\" | unwrap duration_ms | __error__=\"\" [$__auto]) by (model)",
+          "expr": "quantile_over_time(0.5, {service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap duration_ms | __error__=\"\" [$__auto]) by (model)",
           "legendFormat": "p50 {{model}}",
           "refId": "A",
           "queryType": "range"
@@ -4239,7 +4409,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "quantile_over_time(0.95, {service_name=\"claude-code\"} | event_name=\"api_request\" | unwrap duration_ms | __error__=\"\" [$__auto]) by (model)",
+          "expr": "quantile_over_time(0.95, {service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap duration_ms | __error__=\"\" [$__auto]) by (model)",
           "legendFormat": "p95 {{model}}",
           "refId": "B",
           "queryType": "range"
@@ -4249,7 +4419,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "quantile_over_time(0.95, {service_name=\"claude-code\"} | event_name=\"api_request\" | unwrap duration_ms | __error__=\"\" [7d]) by ()",
+          "expr": "quantile_over_time(0.95, {service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap duration_ms | __error__=\"\" [7d]) by ()",
           "legendFormat": "usual p95 (7 d)",
           "refId": "C",
           "queryType": "range"
@@ -4259,7 +4429,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "1.5 * quantile_over_time(0.95, {service_name=\"claude-code\"} | event_name=\"api_request\" | unwrap duration_ms | __error__=\"\" [7d]) by ()",
+          "expr": "1.5 * quantile_over_time(0.95, {service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap duration_ms | __error__=\"\" [7d]) by ()",
           "legendFormat": "1.5x usual p95",
           "refId": "D",
           "queryType": "range"
@@ -4543,517 +4713,6 @@
                     10,
                     10
                   ]
-                }
-              }
-            ]
-          }
-        ]
-      },
-      "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom",
-          "calcs": [],
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "transformations": [
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
-            "renamePattern": "$1"
-          }
-        }
-      ]
-    },
-    {
-      "id": 62,
-      "type": "timeseries",
-      "title": "Time to first token p50 / p95",
-      "description": "Dashed lines: your own p95 over the last 7 days, and 1.5x that (where the Health tile turns orange).",
-      "gridPos": {
-        "x": 8,
-        "y": 84,
-        "w": 8,
-        "h": 8
-      },
-      "datasource": {
-        "type": "loki",
-        "uid": "loki"
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "loki"
-          },
-          "expr": "quantile_over_time(0.5, {service_name=\"claude-code\"} | event_name=\"api_request\" | unwrap ttft_ms | __error__=\"\" [$__auto]) by (model)",
-          "legendFormat": "p50 {{model}}",
-          "refId": "A",
-          "queryType": "range"
-        },
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "loki"
-          },
-          "expr": "quantile_over_time(0.95, {service_name=\"claude-code\"} | event_name=\"api_request\" | unwrap ttft_ms | __error__=\"\" [$__auto]) by (model)",
-          "legendFormat": "p95 {{model}}",
-          "refId": "B",
-          "queryType": "range"
-        },
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "loki"
-          },
-          "expr": "quantile_over_time(0.95, {service_name=\"claude-code\"} | event_name=\"api_request\" | unwrap ttft_ms | __error__=\"\" [7d]) by ()",
-          "legendFormat": "usual p95 (7 d)",
-          "refId": "C",
-          "queryType": "range"
-        },
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "loki"
-          },
-          "expr": "1.5 * quantile_over_time(0.95, {service_name=\"claude-code\"} | event_name=\"api_request\" | unwrap ttft_ms | __error__=\"\" [7d]) by ()",
-          "legendFormat": "1.5x usual p95",
-          "refId": "D",
-          "queryType": "range"
-        }
-      ],
-      "interval": "1m",
-      "fieldConfig": {
-        "defaults": {
-          "unit": "ms",
-          "custom": {
-            "drawStyle": "line",
-            "lineWidth": 2,
-            "fillOpacity": 10,
-            "showPoints": "auto",
-            "pointSize": 5,
-            "spanNulls": 1800000,
-            "barAlignment": 0,
-            "stacking": {
-              "mode": "none",
-              "group": "A"
-            }
-          },
-          "noValue": "none in this range",
-          "min": 0,
-          "decimals": 2
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "usual p95 (7 d)"
-            },
-            "properties": [
-              {
-                "id": "custom.lineStyle",
-                "value": {
-                  "fill": "dash",
-                  "dash": [
-                    8,
-                    8
-                  ]
-                }
-              },
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed",
-                  "fixedColor": "text"
-                }
-              },
-              {
-                "id": "custom.lineWidth",
-                "value": 1
-              },
-              {
-                "id": "custom.showPoints",
-                "value": "never"
-              },
-              {
-                "id": "custom.fillOpacity",
-                "value": 0
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "1.5x usual p95"
-            },
-            "properties": [
-              {
-                "id": "custom.lineStyle",
-                "value": {
-                  "fill": "dash",
-                  "dash": [
-                    8,
-                    8
-                  ]
-                }
-              },
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed",
-                  "fixedColor": "orange"
-                }
-              },
-              {
-                "id": "custom.lineWidth",
-                "value": 1
-              },
-              {
-                "id": "custom.showPoints",
-                "value": "never"
-              },
-              {
-                "id": "custom.fillOpacity",
-                "value": 0
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*opus.*"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed",
-                  "fixedColor": "purple"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*sonnet.*"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed",
-                  "fixedColor": "light-blue"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*sonnet-5-5.*"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed",
-                  "fixedColor": "blue"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*haiku.*"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed",
-                  "fixedColor": "green"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*haiku-5-5.*"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed",
-                  "fixedColor": "light-green"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": "^p95 .*"
-            },
-            "properties": [
-              {
-                "id": "custom.lineStyle",
-                "value": {
-                  "fill": "dash",
-                  "dash": [
-                    10,
-                    10
-                  ]
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*opus.*"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed",
-                  "fixedColor": "purple"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*sonnet.*"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed",
-                  "fixedColor": "light-blue"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*sonnet-5-5.*"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed",
-                  "fixedColor": "blue"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*haiku.*"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed",
-                  "fixedColor": "green"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*haiku-5-5.*"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed",
-                  "fixedColor": "light-green"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": "^p95 .*"
-            },
-            "properties": [
-              {
-                "id": "custom.lineStyle",
-                "value": {
-                  "fill": "dash",
-                  "dash": [
-                    10,
-                    10
-                  ]
-                }
-              }
-            ]
-          }
-        ]
-      },
-      "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom",
-          "calcs": [],
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "transformations": [
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
-            "renamePattern": "$1"
-          }
-        }
-      ]
-    },
-    {
-      "id": 63,
-      "type": "timeseries",
-      "title": "API requests per minute",
-      "description": "Shown as a rate per min, so the scale is the same at every time range.",
-      "gridPos": {
-        "x": 16,
-        "y": 84,
-        "w": 8,
-        "h": 8
-      },
-      "datasource": {
-        "type": "loki",
-        "uid": "loki"
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "loki"
-          },
-          "expr": "(sum by (model) (count_over_time({service_name=\"claude-code\"} | event_name=\"api_request\" [$__auto]))) * 60000 / $__interval_ms",
-          "legendFormat": "{{model}}",
-          "refId": "A",
-          "queryType": "range"
-        }
-      ],
-      "interval": "1m",
-      "fieldConfig": {
-        "defaults": {
-          "unit": "si:",
-          "custom": {
-            "drawStyle": "bars",
-            "lineWidth": 2,
-            "fillOpacity": 40,
-            "showPoints": "auto",
-            "pointSize": 5,
-            "spanNulls": 1800000,
-            "barAlignment": 0,
-            "stacking": {
-              "mode": "normal",
-              "group": "A"
-            }
-          },
-          "noValue": "none in this range",
-          "min": 0,
-          "decimals": 1
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*opus.*"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed",
-                  "fixedColor": "purple"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*sonnet.*"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed",
-                  "fixedColor": "light-blue"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*sonnet-5-5.*"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed",
-                  "fixedColor": "blue"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*haiku.*"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed",
-                  "fixedColor": "green"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*haiku-5-5.*"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed",
-                  "fixedColor": "light-green"
                 }
               }
             ]
@@ -5085,12 +4744,12 @@
     {
       "id": 64,
       "type": "timeseries",
-      "title": "Output tokens per request (avg)",
-      "description": "",
+      "title": "Time to first token p50 / p95",
+      "description": "Dashed lines: your own p95 over the last 7 days, and 1.5x that (where the Health tile turns orange).",
       "gridPos": {
-        "x": 0,
-        "y": 92,
-        "w": 5,
+        "x": 8,
+        "y": 91,
+        "w": 8,
         "h": 8
       },
       "datasource": {
@@ -5103,16 +4762,46 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "avg_over_time({service_name=\"claude-code\"} | event_name=\"api_request\" | unwrap output_tokens | __error__=\"\" [$__auto]) by (model)",
-          "legendFormat": "{{model}}",
+          "expr": "quantile_over_time(0.5, {service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap ttft_ms | __error__=\"\" [$__auto]) by (model)",
+          "legendFormat": "p50 {{model}}",
           "refId": "A",
+          "queryType": "range"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "quantile_over_time(0.95, {service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap ttft_ms | __error__=\"\" [$__auto]) by (model)",
+          "legendFormat": "p95 {{model}}",
+          "refId": "B",
+          "queryType": "range"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "quantile_over_time(0.95, {service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap ttft_ms | __error__=\"\" [7d]) by ()",
+          "legendFormat": "usual p95 (7 d)",
+          "refId": "C",
+          "queryType": "range"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "1.5 * quantile_over_time(0.95, {service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap ttft_ms | __error__=\"\" [7d]) by ()",
+          "legendFormat": "1.5x usual p95",
+          "refId": "D",
           "queryType": "range"
         }
       ],
       "interval": "1m",
       "fieldConfig": {
         "defaults": {
-          "unit": "si:",
+          "unit": "ms",
           "custom": {
             "drawStyle": "line",
             "lineWidth": 2,
@@ -5127,9 +4816,84 @@
             }
           },
           "noValue": "none in this range",
-          "min": 0
+          "min": 0,
+          "decimals": 2
         },
         "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "usual p95 (7 d)"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    8,
+                    8
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "text"
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              },
+              {
+                "id": "custom.showPoints",
+                "value": "never"
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "1.5x usual p95"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    8,
+                    8
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              },
+              {
+                "id": "custom.showPoints",
+                "value": "never"
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              }
+            ]
+          },
           {
             "matcher": {
               "id": "byRegexp",
@@ -5204,6 +4968,117 @@
                 }
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^p95 .*"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    10,
+                    10
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*opus.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "purple"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*sonnet.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "light-blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*sonnet-5-5.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*haiku.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*haiku-5-5.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "light-green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^p95 .*"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    10,
+                    10
+                  ]
+                }
+              }
+            ]
           }
         ]
       },
@@ -5232,12 +5107,12 @@
     {
       "id": 65,
       "type": "timeseries",
-      "title": "Cache read / request (avg)",
-      "description": "",
+      "title": "API requests per minute",
+      "description": "Shown as a rate per min, so the scale is the same at every time range.",
       "gridPos": {
-        "x": 5,
-        "y": 92,
-        "w": 5,
+        "x": 16,
+        "y": 91,
+        "w": 8,
         "h": 8
       },
       "datasource": {
@@ -5250,7 +5125,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "avg_over_time({service_name=\"claude-code\"} | event_name=\"api_request\" | unwrap cache_read_tokens | __error__=\"\" [$__auto]) by (model)",
+          "expr": "(sum by (model) (count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" [$__auto]))) * 60000 / $__interval_ms",
           "legendFormat": "{{model}}",
           "refId": "A",
           "queryType": "range"
@@ -5261,20 +5136,21 @@
         "defaults": {
           "unit": "si:",
           "custom": {
-            "drawStyle": "line",
+            "drawStyle": "bars",
             "lineWidth": 2,
-            "fillOpacity": 10,
+            "fillOpacity": 40,
             "showPoints": "auto",
             "pointSize": 5,
             "spanNulls": 1800000,
             "barAlignment": 0,
             "stacking": {
-              "mode": "none",
+              "mode": "normal",
               "group": "A"
             }
           },
           "noValue": "none in this range",
-          "min": 0
+          "min": 0,
+          "decimals": 1
         },
         "overrides": [
           {
@@ -5378,12 +5254,306 @@
     },
     {
       "id": 66,
+      "type": "timeseries",
+      "title": "Output tokens per request (avg)",
+      "description": "",
+      "gridPos": {
+        "x": 0,
+        "y": 99,
+        "w": 5,
+        "h": 8
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "avg_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap output_tokens | __error__=\"\" [$__auto]) by (model)",
+          "legendFormat": "{{model}}",
+          "refId": "A",
+          "queryType": "range"
+        }
+      ],
+      "interval": "1m",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "si:",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "auto",
+            "pointSize": 5,
+            "spanNulls": 1800000,
+            "barAlignment": 0,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          },
+          "noValue": "none in this range",
+          "min": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*opus.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "purple"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*sonnet.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "light-blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*sonnet-5-5.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*haiku.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*haiku-5-5.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "light-green"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": [],
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        }
+      ]
+    },
+    {
+      "id": 67,
+      "type": "timeseries",
+      "title": "Cache read / request (avg)",
+      "description": "",
+      "gridPos": {
+        "x": 5,
+        "y": 99,
+        "w": 5,
+        "h": 8
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "avg_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" | unwrap cache_read_tokens | __error__=\"\" [$__auto]) by (model)",
+          "legendFormat": "{{model}}",
+          "refId": "A",
+          "queryType": "range"
+        }
+      ],
+      "interval": "1m",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "si:",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "auto",
+            "pointSize": 5,
+            "spanNulls": 1800000,
+            "barAlignment": 0,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          },
+          "noValue": "none in this range",
+          "min": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*opus.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "purple"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*sonnet.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "light-blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*sonnet-5-5.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*haiku.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*haiku-5-5.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "light-green"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": [],
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        }
+      ]
+    },
+    {
+      "id": 68,
       "type": "table",
       "title": "Requests by effort and speed",
       "description": "Reasoning effort and speed setting (e.g. fast mode) per request.",
       "gridPos": {
         "x": 10,
-        "y": 92,
+        "y": 99,
         "w": 8,
         "h": 8
       },
@@ -5397,7 +5567,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum by (effort, speed) (count_over_time({service_name=\"claude-code\"} | event_name=\"api_request\" [$__range]))",
+          "expr": "sum by (effort, speed) (count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" [$__range]))",
           "legendFormat": "",
           "refId": "A",
           "queryType": "instant",
@@ -5485,13 +5655,13 @@
       ]
     },
     {
-      "id": 67,
+      "id": 69,
       "type": "timeseries",
       "title": "API errors per hour",
       "description": "api_error / api_retries_exhausted events. Empty while the API is healthy (verified: a bad model name produces an HTTP 404 here). Shown as a rate per hour, so the scale is the same at every time range.",
       "gridPos": {
         "x": 18,
-        "y": 92,
+        "y": 99,
         "w": 6,
         "h": 8
       },
@@ -5505,7 +5675,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "(sum by (status_code, model) (count_over_time({service_name=\"claude-code\"} | event_name=\"api_error\" [$__auto]))) * 3600000 / $__interval_ms",
+          "expr": "(sum by (status_code, model) (count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_error\" [$__auto]))) * 3600000 / $__interval_ms",
           "legendFormat": "HTTP {{status_code}} {{model}}",
           "refId": "A",
           "queryType": "range"
@@ -5515,7 +5685,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "(sum by (model) (count_over_time({service_name=\"claude-code\"} | event_name=\"api_retries_exhausted\" [$__auto]))) * 3600000 / $__interval_ms",
+          "expr": "(sum by (model) (count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_retries_exhausted\" [$__auto]))) * 3600000 / $__interval_ms",
           "legendFormat": "retries exhausted {{model}}",
           "refId": "B",
           "queryType": "range"
@@ -5643,26 +5813,26 @@
       ]
     },
     {
-      "id": 68,
+      "id": 70,
       "type": "row",
       "title": "Tools, permissions and skills",
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 100,
+        "y": 107,
         "w": 24,
         "h": 1
       },
       "panels": []
     },
     {
-      "id": 69,
+      "id": 71,
       "type": "timeseries",
       "title": "Tool calls per minute",
       "description": "Shown as a rate per min, so the scale is the same at every time range.",
       "gridPos": {
         "x": 0,
-        "y": 101,
+        "y": 108,
         "w": 8,
         "h": 8
       },
@@ -5676,7 +5846,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "(sum by (tool_name) (count_over_time({service_name=\"claude-code\"} | event_name=\"tool_result\" [$__auto]))) * 60000 / $__interval_ms",
+          "expr": "(sum by (tool_name) (count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"tool_result\" [$__auto]))) * 60000 / $__interval_ms",
           "legendFormat": "{{tool_name}}",
           "refId": "A",
           "queryType": "range"
@@ -5728,13 +5898,13 @@
       ]
     },
     {
-      "id": 70,
+      "id": 72,
       "type": "timeseries",
       "title": "Tool duration p95 by tool",
       "description": "",
       "gridPos": {
         "x": 8,
-        "y": 101,
+        "y": 108,
         "w": 8,
         "h": 8
       },
@@ -5748,7 +5918,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "quantile_over_time(0.95, {service_name=\"claude-code\"} | event_name=\"tool_result\" | unwrap duration_ms | __error__=\"\" [$__auto]) by (tool_name)",
+          "expr": "quantile_over_time(0.95, {service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"tool_result\" | unwrap duration_ms | __error__=\"\" [$__auto]) by (tool_name)",
           "legendFormat": "{{tool_name}}",
           "refId": "A",
           "queryType": "range"
@@ -5800,13 +5970,13 @@
       ]
     },
     {
-      "id": 71,
+      "id": 73,
       "type": "timeseries",
       "title": "Tool failures per hour",
       "description": "tool_result events with success=false. Shown as a rate per hour, so the scale is the same at every time range.",
       "gridPos": {
         "x": 16,
-        "y": 101,
+        "y": 108,
         "w": 8,
         "h": 8
       },
@@ -5820,7 +5990,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "(sum by (tool_name, error_type) (count_over_time({service_name=\"claude-code\"} | event_name=\"tool_result\" | success=\"false\" [$__auto]))) * 3600000 / $__interval_ms",
+          "expr": "(sum by (tool_name, error_type) (count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"tool_result\" | success=\"false\" [$__auto]))) * 3600000 / $__interval_ms",
           "legendFormat": "{{tool_name}}: {{error_type}}",
           "refId": "A",
           "queryType": "range"
@@ -5872,13 +6042,13 @@
       ]
     },
     {
-      "id": 72,
+      "id": 74,
       "type": "timeseries",
       "title": "Permission decisions per minute",
       "description": "accept/reject and who decided (config, user, hook ...). Shown as a rate per min, so the scale is the same at every time range.",
       "gridPos": {
         "x": 0,
-        "y": 109,
+        "y": 116,
         "w": 8,
         "h": 8
       },
@@ -5892,7 +6062,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "(sum by (decision, source) (count_over_time({service_name=\"claude-code\"} | event_name=\"tool_decision\" [$__auto]))) * 60000 / $__interval_ms",
+          "expr": "(sum by (decision, source) (count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"tool_decision\" [$__auto]))) * 60000 / $__interval_ms",
           "legendFormat": "{{decision}} ({{source}})",
           "refId": "A",
           "queryType": "range"
@@ -5965,13 +6135,13 @@
       ]
     },
     {
-      "id": 73,
+      "id": 75,
       "type": "table",
       "title": "Permission mode and auto-mode verdicts",
       "description": "Permission mode in force and the auto-mode classifier's verdict per tool call.",
       "gridPos": {
         "x": 8,
-        "y": 109,
+        "y": 116,
         "w": 8,
         "h": 8
       },
@@ -5985,7 +6155,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum by (permission_mode, classifier_verdict) (count_over_time({service_name=\"claude-code\"} | event_name=\"tool_decision\" [$__range]))",
+          "expr": "sum by (permission_mode, classifier_verdict) (count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"tool_decision\" [$__range]))",
           "legendFormat": "",
           "refId": "A",
           "queryType": "instant",
@@ -6112,13 +6282,13 @@
       ]
     },
     {
-      "id": 74,
+      "id": 76,
       "type": "timeseries",
       "title": "Tool result size p95 by tool",
       "description": "Large results fill the context window; watch for tools that return a lot.",
       "gridPos": {
         "x": 16,
-        "y": 109,
+        "y": 116,
         "w": 8,
         "h": 8
       },
@@ -6132,7 +6302,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "quantile_over_time(0.95, {service_name=\"claude-code\"} | event_name=\"tool_result\" | unwrap tool_result_size_bytes | __error__=\"\" [$__auto]) by (tool_name)",
+          "expr": "quantile_over_time(0.95, {service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"tool_result\" | unwrap tool_result_size_bytes | __error__=\"\" [$__auto]) by (tool_name)",
           "legendFormat": "{{tool_name}}",
           "refId": "A",
           "queryType": "range"
@@ -6184,13 +6354,13 @@
       ]
     },
     {
-      "id": 75,
+      "id": 77,
       "type": "table",
       "title": "MCP server connections",
       "description": "mcp_server_connection events in the range. 'failed' means a configured server did not start; the error code says why (e.g. an HTTP status).",
       "gridPos": {
         "x": 0,
-        "y": 117,
+        "y": 124,
         "w": 10,
         "h": 8
       },
@@ -6204,7 +6374,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum by (status, transport_type, error_code) (count_over_time({service_name=\"claude-code\"} | event_name=\"mcp_server_connection\" [$__range]))",
+          "expr": "sum by (status, transport_type, error_code) (count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"mcp_server_connection\" [$__range]))",
           "legendFormat": "",
           "refId": "A",
           "queryType": "instant",
@@ -6300,13 +6470,13 @@
       ]
     },
     {
-      "id": 76,
+      "id": 78,
       "type": "table",
       "title": "Skills activated",
       "description": "Skills loaded, and whether you or Claude triggered them.",
       "gridPos": {
         "x": 10,
-        "y": 117,
+        "y": 124,
         "w": 8,
         "h": 8
       },
@@ -6320,7 +6490,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum by (skill_name, invocation_trigger) (count_over_time({service_name=\"claude-code\"} | event_name=\"skill_activated\" [$__range]))",
+          "expr": "sum by (skill_name, invocation_trigger) (count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"skill_activated\" [$__range]))",
           "legendFormat": "",
           "refId": "A",
           "queryType": "instant",
@@ -6408,13 +6578,13 @@
       ]
     },
     {
-      "id": 77,
+      "id": 79,
       "type": "table",
       "title": "Slash commands used",
       "description": "Slash commands typed as prompts (/clear, /usage, custom commands ...).",
       "gridPos": {
         "x": 18,
-        "y": 117,
+        "y": 124,
         "w": 6,
         "h": 8
       },
@@ -6428,7 +6598,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum by (command_name) (count_over_time({service_name=\"claude-code\"} | event_name=\"user_prompt\" | command_name!=\"\" [$__range]))",
+          "expr": "sum by (command_name) (count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"user_prompt\" | command_name!=\"\" [$__range]))",
           "legendFormat": "",
           "refId": "A",
           "queryType": "instant",
@@ -6514,26 +6684,26 @@
       ]
     },
     {
-      "id": 78,
+      "id": 80,
       "type": "row",
       "title": "Subagents",
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 125,
+        "y": 132,
         "w": 24,
         "h": 1
       },
       "panels": []
     },
     {
-      "id": 79,
+      "id": 81,
       "type": "table",
       "title": "Subagent runs by type",
       "description": "subagent_completed events: which subagents ran, and on which model.",
       "gridPos": {
         "x": 0,
-        "y": 126,
+        "y": 133,
         "w": 8,
         "h": 7
       },
@@ -6547,7 +6717,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum by (agent_type, model) (count_over_time({service_name=\"claude-code\"} | event_name=\"subagent_completed\" [$__range]))",
+          "expr": "sum by (agent_type, model) (count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"subagent_completed\" [$__range]))",
           "legendFormat": "",
           "refId": "A",
           "queryType": "instant",
@@ -6657,13 +6827,13 @@
       ]
     },
     {
-      "id": 80,
+      "id": 82,
       "type": "timeseries",
       "title": "Subagent duration (avg)",
       "description": "Wall-clock time per subagent run.",
       "gridPos": {
         "x": 8,
-        "y": 126,
+        "y": 133,
         "w": 8,
         "h": 7
       },
@@ -6677,7 +6847,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "avg_over_time({service_name=\"claude-code\"} | event_name=\"subagent_completed\" | unwrap duration_ms | __error__=\"\" [$__auto]) by (agent_type)",
+          "expr": "avg_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"subagent_completed\" | unwrap duration_ms | __error__=\"\" [$__auto]) by (agent_type)",
           "legendFormat": "{{agent_type}}",
           "refId": "A",
           "queryType": "range"
@@ -6729,13 +6899,13 @@
       ]
     },
     {
-      "id": 81,
+      "id": 83,
       "type": "timeseries",
       "title": "Subagent tokens per run (avg)",
       "description": "Total tokens a subagent used (counted separately from the main conversation).",
       "gridPos": {
         "x": 16,
-        "y": 126,
+        "y": 133,
         "w": 8,
         "h": 7
       },
@@ -6749,7 +6919,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "avg_over_time({service_name=\"claude-code\"} | event_name=\"subagent_completed\" | unwrap total_tokens | __error__=\"\" [$__auto]) by (agent_type)",
+          "expr": "avg_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"subagent_completed\" | unwrap total_tokens | __error__=\"\" [$__auto]) by (agent_type)",
           "legendFormat": "{{agent_type}}",
           "refId": "A",
           "queryType": "range"
@@ -6800,26 +6970,26 @@
       ]
     },
     {
-      "id": 82,
+      "id": 84,
       "type": "row",
       "title": "Hooks and context compaction",
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 133,
+        "y": 140,
         "w": 24,
         "h": 1
       },
       "panels": []
     },
     {
-      "id": 83,
+      "id": 85,
       "type": "stat",
       "title": "Hook runs",
       "description": "Hook executions in the range (one per hook event, covering all hooks that matched it).",
       "gridPos": {
         "x": 0,
-        "y": 134,
+        "y": 141,
         "w": 4,
         "h": 4
       },
@@ -6833,7 +7003,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum(count_over_time({service_name=\"claude-code\"} | event_name=\"hook_execution_complete\" [$__range])) or vector(0)",
+          "expr": "sum(count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"hook_execution_complete\" [$__range])) or vector(0)",
           "legendFormat": "",
           "refId": "A",
           "queryType": "instant"
@@ -6866,13 +7036,13 @@
       }
     },
     {
-      "id": 84,
+      "id": 86,
       "type": "stat",
       "title": "Hook problems",
       "description": "Hook runs that blocked an action or errored (num_blocking + num_non_blocking_error). Zero is healthy; a hook that blocks on purpose will show up here too.",
       "gridPos": {
         "x": 0,
-        "y": 138,
+        "y": 145,
         "w": 4,
         "h": 4
       },
@@ -6886,7 +7056,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "(sum(sum_over_time({service_name=\"claude-code\"} | event_name=\"hook_execution_complete\" | unwrap num_blocking | __error__=\"\" [$__range])) or vector(0)) + (sum(sum_over_time({service_name=\"claude-code\"} | event_name=\"hook_execution_complete\" | unwrap num_non_blocking_error | __error__=\"\" [$__range])) or vector(0))",
+          "expr": "(sum(sum_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"hook_execution_complete\" | unwrap num_blocking | __error__=\"\" [$__range])) or vector(0)) + (sum(sum_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"hook_execution_complete\" | unwrap num_non_blocking_error | __error__=\"\" [$__range])) or vector(0))",
           "legendFormat": "",
           "refId": "A",
           "queryType": "instant"
@@ -6931,13 +7101,13 @@
       }
     },
     {
-      "id": 85,
+      "id": 87,
       "type": "timeseries",
       "title": "Hook runs per minute",
       "description": "PreToolUse / PostToolUse / SessionStart / UserPromptSubmit ... hook executions. Shown as a rate per min, so the scale is the same at every time range.",
       "gridPos": {
         "x": 4,
-        "y": 134,
+        "y": 141,
         "w": 8,
         "h": 8
       },
@@ -6951,7 +7121,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "(sum by (hook_event) (count_over_time({service_name=\"claude-code\"} | event_name=\"hook_execution_complete\" [$__auto]))) * 60000 / $__interval_ms",
+          "expr": "(sum by (hook_event) (count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"hook_execution_complete\" [$__auto]))) * 60000 / $__interval_ms",
           "legendFormat": "{{hook_event}}",
           "refId": "A",
           "queryType": "range"
@@ -7003,13 +7173,13 @@
       ]
     },
     {
-      "id": 86,
+      "id": 88,
       "type": "timeseries",
       "title": "Hook duration p95 by hook",
       "description": "Total time a hook event took. Hooks run in the critical path: a slow one delays every tool call or prompt it is attached to.",
       "gridPos": {
         "x": 12,
-        "y": 134,
+        "y": 141,
         "w": 6,
         "h": 8
       },
@@ -7023,7 +7193,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "quantile_over_time(0.95, {service_name=\"claude-code\"} | event_name=\"hook_execution_complete\" | unwrap total_duration_ms | __error__=\"\" [$__auto]) by (hook_name)",
+          "expr": "quantile_over_time(0.95, {service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"hook_execution_complete\" | unwrap total_duration_ms | __error__=\"\" [$__auto]) by (hook_name)",
           "legendFormat": "{{hook_name}}",
           "refId": "A",
           "queryType": "range"
@@ -7075,13 +7245,13 @@
       ]
     },
     {
-      "id": 87,
+      "id": 89,
       "type": "table",
       "title": "Hooks by event",
       "description": "Hook executions per hook event and matcher in the range.",
       "gridPos": {
         "x": 18,
-        "y": 134,
+        "y": 141,
         "w": 6,
         "h": 8
       },
@@ -7095,7 +7265,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum by (hook_name) (count_over_time({service_name=\"claude-code\"} | event_name=\"hook_execution_complete\" [$__range]))",
+          "expr": "sum by (hook_name) (count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"hook_execution_complete\" [$__range]))",
           "legendFormat": "",
           "refId": "A",
           "queryType": "instant",
@@ -7181,13 +7351,13 @@
       ]
     },
     {
-      "id": 88,
+      "id": 90,
       "type": "stat",
       "title": "Compactions",
       "description": "Times the conversation was compacted to free context (automatically when it filled up, or by /compact).",
       "gridPos": {
         "x": 0,
-        "y": 142,
+        "y": 149,
         "w": 4,
         "h": 4
       },
@@ -7201,7 +7371,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum(count_over_time({service_name=\"claude-code\"} | event_name=\"compaction\" [$__range])) or vector(0)",
+          "expr": "sum(count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"compaction\" [$__range])) or vector(0)",
           "legendFormat": "",
           "refId": "A",
           "queryType": "instant"
@@ -7234,13 +7404,13 @@
       }
     },
     {
-      "id": 89,
+      "id": 91,
       "type": "stat",
       "title": "Context freed",
       "description": "Share of the context removed by compactions in the range.",
       "gridPos": {
         "x": 0,
-        "y": 146,
+        "y": 153,
         "w": 4,
         "h": 4
       },
@@ -7254,7 +7424,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "1 - sum(sum_over_time({service_name=\"claude-code\"} | event_name=\"compaction\" | unwrap post_tokens | __error__=\"\" [$__range])) / sum(sum_over_time({service_name=\"claude-code\"} | event_name=\"compaction\" | unwrap pre_tokens | __error__=\"\" [$__range]))",
+          "expr": "1 - sum(sum_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"compaction\" | unwrap post_tokens | __error__=\"\" [$__range])) / sum(sum_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"compaction\" | unwrap pre_tokens | __error__=\"\" [$__range]))",
           "legendFormat": "",
           "refId": "A",
           "queryType": "instant"
@@ -7288,13 +7458,13 @@
       }
     },
     {
-      "id": 90,
+      "id": 92,
       "type": "timeseries",
       "title": "Context size before and after compaction",
       "description": "Tokens in context when a compaction ran, and what was left afterwards.",
       "gridPos": {
         "x": 4,
-        "y": 142,
+        "y": 149,
         "w": 7,
         "h": 8
       },
@@ -7308,7 +7478,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "avg_over_time({service_name=\"claude-code\"} | event_name=\"compaction\" | unwrap pre_tokens | __error__=\"\" [$__auto]) by (trigger)",
+          "expr": "avg_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"compaction\" | unwrap pre_tokens | __error__=\"\" [$__auto]) by (trigger)",
           "legendFormat": "before ({{trigger}})",
           "refId": "A",
           "queryType": "range"
@@ -7318,7 +7488,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "avg_over_time({service_name=\"claude-code\"} | event_name=\"compaction\" | unwrap post_tokens | __error__=\"\" [$__auto]) by (trigger)",
+          "expr": "avg_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"compaction\" | unwrap post_tokens | __error__=\"\" [$__auto]) by (trigger)",
           "legendFormat": "after ({{trigger}})",
           "refId": "B",
           "queryType": "range"
@@ -7369,13 +7539,13 @@
       ]
     },
     {
-      "id": 91,
+      "id": 93,
       "type": "timeseries",
       "title": "Compaction duration",
       "description": "How long a compaction took. Claude is busy summarising during this time.",
       "gridPos": {
         "x": 11,
-        "y": 142,
+        "y": 149,
         "w": 5,
         "h": 8
       },
@@ -7389,7 +7559,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "avg_over_time({service_name=\"claude-code\"} | event_name=\"compaction\" | unwrap duration_ms | __error__=\"\" [$__auto]) by (trigger)",
+          "expr": "avg_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"compaction\" | unwrap duration_ms | __error__=\"\" [$__auto]) by (trigger)",
           "legendFormat": "{{trigger}}",
           "refId": "A",
           "queryType": "range"
@@ -7441,13 +7611,13 @@
       ]
     },
     {
-      "id": 92,
+      "id": 94,
       "type": "table",
       "title": "Compactions by trigger",
       "description": "auto = the context window filled up; manual = /compact. OK=false means the compaction failed.",
       "gridPos": {
         "x": 16,
-        "y": 142,
+        "y": 149,
         "w": 8,
         "h": 8
       },
@@ -7461,7 +7631,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum by (trigger, success) (count_over_time({service_name=\"claude-code\"} | event_name=\"compaction\" [$__range]))",
+          "expr": "sum by (trigger, success) (count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"compaction\" [$__range]))",
           "legendFormat": "",
           "refId": "A",
           "queryType": "instant",
@@ -7588,26 +7758,26 @@
       ]
     },
     {
-      "id": 93,
+      "id": 95,
       "type": "row",
       "title": "Traces (span metrics + Tempo)",
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 150,
+        "y": 157,
         "w": 24,
         "h": 1
       },
       "panels": []
     },
     {
-      "id": 94,
+      "id": 96,
       "type": "timeseries",
       "title": "Span rate by type",
       "description": "interaction = one prompt; llm_request = one API call; tool / tool.execution / tool.blocked_on_user. The binary also defines mcp.rpc, hook, subagent.spawn, compaction and bash.subprocess spans, but they were not exported in testing; they would show up here if emitted.",
       "gridPos": {
         "x": 0,
-        "y": 151,
+        "y": 158,
         "w": 8,
         "h": 8
       },
@@ -7695,13 +7865,13 @@
       ]
     },
     {
-      "id": 95,
+      "id": 97,
       "type": "timeseries",
       "title": "Span p95 latency by type",
       "description": "",
       "gridPos": {
         "x": 8,
-        "y": 151,
+        "y": 158,
         "w": 8,
         "h": 8
       },
@@ -7789,13 +7959,13 @@
       ]
     },
     {
-      "id": 96,
+      "id": 98,
       "type": "timeseries",
       "title": "Span errors per hour",
       "description": "Error spans per interval; empty is good. Shown as a rate per hour, so the scale is the same at every time range.",
       "gridPos": {
         "x": 16,
-        "y": 151,
+        "y": 158,
         "w": 8,
         "h": 8
       },
@@ -7883,13 +8053,13 @@
       ]
     },
     {
-      "id": 97,
+      "id": 99,
       "type": "table",
       "title": "Recent interactions (click a trace ID to open the waterfall)",
       "description": "",
       "gridPos": {
         "x": 0,
-        "y": 159,
+        "y": 166,
         "w": 24,
         "h": 8
       },
@@ -7950,13 +8120,13 @@
       ]
     },
     {
-      "id": 98,
+      "id": 100,
       "type": "table",
       "title": "Slow LLM requests (over 3 s, slowest first)",
       "description": "",
       "gridPos": {
         "x": 0,
-        "y": 167,
+        "y": 174,
         "w": 24,
         "h": 7
       },
@@ -8072,13 +8242,13 @@
       ]
     },
     {
-      "id": 99,
+      "id": 101,
       "type": "table",
       "title": "Slow tool calls (over 1 s, slowest first)",
       "description": "Whole tool call, including any time spent waiting for a permission answer.",
       "gridPos": {
         "x": 0,
-        "y": 174,
+        "y": 181,
         "w": 24,
         "h": 7
       },
@@ -8192,26 +8362,26 @@
       ]
     },
     {
-      "id": 100,
+      "id": 102,
       "type": "row",
       "title": "Events, plugins and logs",
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 182,
+        "y": 189,
         "w": 24,
         "h": 1
       },
       "panels": []
     },
     {
-      "id": 101,
+      "id": 103,
       "type": "timeseries",
       "title": "Events per minute by type",
       "description": "plugin_loaded is excluded; it fires many times at every startup. Shown as a rate per min, so the scale is the same at every time range.",
       "gridPos": {
         "x": 0,
-        "y": 183,
+        "y": 190,
         "w": 12,
         "h": 8
       },
@@ -8225,7 +8395,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "(sum by (event_name) (count_over_time({service_name=\"claude-code\"} | event_name!=\"plugin_loaded\" [$__auto]))) * 60000 / $__interval_ms",
+          "expr": "(sum by (event_name) (count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name!=\"plugin_loaded\" [$__auto]))) * 60000 / $__interval_ms",
           "legendFormat": "{{event_name}}",
           "refId": "A",
           "queryType": "range"
@@ -8284,13 +8454,13 @@
       ]
     },
     {
-      "id": 102,
+      "id": 104,
       "type": "table",
       "title": "Plugins loaded",
       "description": "Plugins Claude Code loaded in the range (one load per session start).",
       "gridPos": {
         "x": 12,
-        "y": 183,
+        "y": 190,
         "w": 12,
         "h": 8
       },
@@ -8304,7 +8474,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum by (plugin_name, plugin_scope, marketplace_name) (count_over_time({service_name=\"claude-code\"} | event_name=\"plugin_loaded\" [$__range]))",
+          "expr": "sum by (plugin_name, plugin_scope, marketplace_name) (count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"plugin_loaded\" [$__range]))",
           "legendFormat": "",
           "refId": "A",
           "queryType": "instant",
@@ -8398,13 +8568,13 @@
       ]
     },
     {
-      "id": 103,
+      "id": 105,
       "type": "logs",
       "title": "Event stream (prompt text is redacted by default)",
       "description": "",
       "gridPos": {
         "x": 0,
-        "y": 191,
+        "y": 198,
         "w": 24,
         "h": 12
       },
@@ -8420,7 +8590,7 @@
             "uid": "loki"
           },
           "queryType": "range",
-          "expr": "{service_name=\"claude-code\"} | event_name!=\"plugin_loaded\" | line_format `{{ .event_name }}{{ with .tool_name }}  {{ . }}{{ end }}{{ with .hook_name }}  {{ . }}{{ end }}{{ with .command_name }}  /{{ . }}{{ end }}{{ with .agent_type }}  {{ . }}{{ end }}{{ with .model }}  {{ regexReplaceAll \"-[0-9]{8}$\" (regexReplaceAll \"^claude-\" . \"\") \"\" }}{{ end }}{{ with .decision }}  {{ . }}{{ end }}{{ with .status }}  {{ . }}{{ end }}{{ with .trigger }}  {{ . }}{{ end }}{{ with .duration_ms }}  {{ . }} ms{{ end }}{{ with .total_duration_ms }}  {{ . }} ms{{ end }}{{ if eq .success \"false\" }}  FAILED{{ end }}`"
+          "expr": "{service_name=\"claude-code\"} | host_name=~\"$host\" | event_name!=\"plugin_loaded\" | line_format `{{ .event_name }}{{ with .tool_name }}  {{ . }}{{ end }}{{ with .hook_name }}  {{ . }}{{ end }}{{ with .command_name }}  /{{ . }}{{ end }}{{ with .agent_type }}  {{ . }}{{ end }}{{ with .model }}  {{ regexReplaceAll \"-[0-9]{8}$\" (regexReplaceAll \"^claude-\" . \"\") \"\" }}{{ end }}{{ with .decision }}  {{ . }}{{ end }}{{ with .status }}  {{ . }}{{ end }}{{ with .trigger }}  {{ . }}{{ end }}{{ with .duration_ms }}  {{ . }} ms{{ end }}{{ with .total_duration_ms }}  {{ . }} ms{{ end }}{{ if eq .success \"false\" }}  FAILED{{ end }}`"
         }
       ],
       "options": {
