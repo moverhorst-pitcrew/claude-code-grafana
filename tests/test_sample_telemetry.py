@@ -61,6 +61,18 @@ class SampleTelemetryCoversTheDashboard(unittest.TestCase):
         for body in self.sent.values():
             json.dumps(body)
 
+    def test_every_cumulative_counter_carries_two_samples_so_rate_works(self):
+        for rm in self.sent["/v1/metrics"]["resourceMetrics"]:
+            for sm in rm["scopeMetrics"]:
+                for m in sm["metrics"]:
+                    if "sum" not in m:
+                        continue
+                    stamps = {int(p["timeUnixNano"]) for p in m["sum"]["dataPoints"]}
+                    self.assertEqual(len(stamps), 2, f"{m['name']} needs two samples for rate() to return anything")
+                    gap = (max(stamps) - min(stamps)) / 1e9
+                    self.assertLess(gap, 60, f"{m['name']}: both samples must fit in one $__rate_interval, and the "
+                                             "smallest one tools/validate_dashboard.py generates is 60 s (left-open)")
+
     def test_cost_metric_carries_skill_name_and_terminal_type(self):
         points = cost_metric_points(self.sent["/v1/metrics"])
         skill_names = {label(p, "skill_name") for p in points}

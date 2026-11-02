@@ -14,6 +14,11 @@ python3 tools/validate_dashboard.py --range 24h   # also try 15m, 3h and 7d
 
 Grafana reloads the file within about 30 seconds. Edits made in the Grafana UI are overwritten, so do not rely on them.
 
+A query that errors is always a failure. `--require-data` also fails a query that returns no rows; CI uses it against
+the sample telemetry of `tools/send_sample_telemetry.py`, so a panel that is empty on that data needs an entry in the
+`ALLOW_EMPTY` constant in the validator, with the reason why. Against your own stack the flag is mostly noise, because
+panels for features you do not use are empty there.
+
 ## Checks
 
 CI runs these, and so can you. The tests need only the Python standard library:

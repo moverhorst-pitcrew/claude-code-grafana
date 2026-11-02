@@ -44,6 +44,7 @@ jobs:
   dashboard-smoke:
     # Starts the real stack, feeds it sample telemetry and runs every dashboard query against it, so a query that
     # errors (bad PromQL/LogQL/TraceQL, a wrong datasource type) fails CI instead of only showing up empty in Grafana.
+    # --require-data also fails a query that returns no rows, which is what a renamed or dropped metric looks like.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -77,10 +78,10 @@ jobs:
           exit 1
       - name: Send sample telemetry
         run: python3 tools/send_sample_telemetry.py
-      - name: Give the collector a moment to ingest it
-        run: sleep 10
+      - name: Wait until the telemetry is queryable
+        run: python3 tools/wait_for_telemetry.py
       - name: Validate the dashboard
-        run: python3 tools/validate_dashboard.py --range 3h
+        run: python3 tools/validate_dashboard.py --range 3h --require-data
       - name: Stack logs
         if: failure()
         run: docker compose logs

@@ -10,6 +10,13 @@ the project uses [Semantic Versioning](https://semver.org/). Upgrade notes are i
   `tools/validate_dashboard.py` against the result, so a query that errors against a live Grafana fails CI.
 - `examples/alerting/`: Grafana alert rule examples for weekly usage above 80%, 5-hour usage
   above 90%, a stale usage poller, and daily cost per host above a threshold.
+- `tools/validate_dashboard.py --require-data`: a query that succeeds but returns no rows counts as a failure,
+  checked per target, so a renamed or dropped metric fails CI instead of leaving a panel empty. The CI smoke job
+  uses it; panels that are empty on the sample telemetry are listed in the script's `ALLOW_EMPTY` constant.
+- `tools/wait_for_telemetry.py`: the smoke job waits until the sample telemetry can actually be queried
+  (a searchable trace in Tempo, two samples of the span metrics and of the counters) instead of sleeping
+  for a fixed ten seconds, and fails with what is still missing. `tools/send_sample_telemetry.py` sends two
+  samples per cumulative counter, so the dashboard's `rate()` panels have something to show.
 - Cost by skill and cost by terminal type (interactive vs headless) bar gauge panels.
 - `tests/test_versions.py`: fails CI when the `grafana/otel-lgtm` version drifts between
   `docker-compose.yml`, the Quadlet unit and the README Compatibility line. A `dashboard-smoke`

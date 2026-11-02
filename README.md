@@ -156,7 +156,10 @@ python3 tools/validate_dashboard.py --range 24h   # runs every query; 15m, 3h, 2
 
 The validator queries Grafana anonymously; set `GRAFANA_PASSWORD` if anonymous viewing is off. CI runs the same check
 on every push: it starts the stack with `docker compose up -d`, feeds it with `tools/send_sample_telemetry.py`, and
-runs the validator against that, so a query that errors against a live Grafana fails the build.
+runs the validator against that, so a query that errors against a live Grafana fails the build. CI also passes
+`--require-data`, which fails a query that succeeds but returns no rows, so a renamed or dropped metric is caught
+instead of quietly emptying a panel. Leave that flag off against your own stack, where panels for features you do not
+use are legitimately empty.
 
 Names, colours and empty states are set in one block near the end of the script, so a new label never means touching a query: `RENAMES` and `CELL_MAPS` (Grafana's *rename by regex* transformation and value mappings), `MODEL_COLORS`, `STAT_STEPS` (the colour lines) and `EMPTY_IS_GOOD`.
 
@@ -223,8 +226,9 @@ Data lives in `~/.local/share/otel-lgtm` (`docker compose down -v` for the compo
 | `docker-compose.yml` | The Docker alternative, with the usage poller as an opt-in profile |
 | `dashboards/claude-code.json` | The generated dashboard |
 | `tools/gen_dashboard.py` | **Source of truth** for the dashboard |
-| `tools/validate_dashboard.py` | Runs every dashboard query at a chosen range |
+| `tools/validate_dashboard.py` | Runs every dashboard query at a chosen range (`--require-data` also fails on no rows) |
 | `tools/send_sample_telemetry.py` | Pushes sample OTLP metrics, logs and traces for CI to validate the dashboard against |
+| `tools/wait_for_telemetry.py` | Waits until that sample telemetry can be queried, before CI validates |
 | `provisioning/`, `quadlet/` | Grafana dashboard provisioning, and the Podman service template |
 | `claude-settings/` | The Claude Code environment variables and the script that merges them into `settings.json` |
 | `usage-poller/` | The optional subscription usage poller and its systemd units |
