@@ -20,11 +20,11 @@ STEP = 30
 
 SESSIONS = [
     {"session_id": "ci00000000000001", "model": "claude-sonnet-5-20261101", "query_source": "main", "effort": "",
-     "agent_name": "", "mcp_server_name": "", "mcp_tool_name": "", "skill_name": "", "user_email": "ci@example.com",
-     "start_type": "fresh", "tool_name": "Bash", "tool_ok": "true"},
+     "agent_name": "", "mcp_server_name": "", "mcp_tool_name": "", "skill_name": "", "terminal_type": "",
+     "user_email": "ci@example.com", "start_type": "fresh", "tool_name": "Bash", "tool_ok": "true"},
     {"session_id": "ci00000000000002", "model": "claude-haiku-4-5-20251001", "query_source": "subagent", "effort": "high",
      "agent_name": "Explore", "mcp_server_name": "github", "mcp_tool_name": "search_issues", "skill_name": "turn-optimizer",
-     "user_email": "ci@example.com", "start_type": "continue", "tool_name": "Edit", "tool_ok": "false"},
+     "terminal_type": "non-interactive", "user_email": "ci@example.com", "start_type": "continue", "tool_name": "Edit", "tool_ok": "false"},
 ]
 
 
@@ -64,7 +64,8 @@ def metric(name, points, sum_monotonic=None):
 def session_metrics(s):
     common = {"model": s["model"], "effort": s["effort"], "query_source": s["query_source"], "agent_name": s["agent_name"],
               "mcp_server_name": s["mcp_server_name"], "mcp_tool_name": s["mcp_tool_name"], "skill_name": s["skill_name"],
-              "host_name": HOST, "session_id": s["session_id"], "user_email": s["user_email"], "service_version": "2.1.314"}
+              "terminal_type": s["terminal_type"], "host_name": HOST, "session_id": s["session_id"],
+              "user_email": s["user_email"], "service_version": "2.1.314"}
     out = [metric("claude_code_cost_usage_USD_total", [(common, 0.42)], sum_monotonic=True)]
     for t, v in (("input", 1200), ("output", 340), ("cacheRead", 5000), ("cacheCreation", 800)):
         out.append(metric("claude_code_token_usage_tokens_total", [({**common, "type": t}, v)], sum_monotonic=True))

@@ -17,7 +17,10 @@ the project uses [Semantic Versioning](https://semver.org/). Upgrade notes are i
   (a searchable trace in Tempo, two samples of the span metrics and of the counters) instead of sleeping
   for a fixed ten seconds, and fails with what is still missing. `tools/send_sample_telemetry.py` sends two
   samples per cumulative counter, so the dashboard's `rate()` panels have something to show.
-
+- Cost by skill and cost by terminal type (interactive vs headless) bar gauge panels.
+- `tests/test_versions.py`: fails CI when the `grafana/otel-lgtm` version drifts between
+  `docker-compose.yml`, the Quadlet unit and the README Compatibility line. A `dashboard-smoke`
+  CI step also checks that the Quadlet's pinned `@sha256` digest still matches its tag.
 ### Fixed
 - `tools/validate_dashboard.py` now exits non-zero when a query fails; it used to print `FAILED: N` but still exit 0.
 
