@@ -228,6 +228,7 @@ Data lives in `~/.local/share/otel-lgtm` (`docker compose down -v` for the compo
 | `tools/gen_dashboard.py` | **Source of truth** for the dashboard |
 | `tools/validate_dashboard.py` | Runs every dashboard query at a chosen range (`--require-data` also fails on no rows) |
 | `tools/send_sample_telemetry.py` | Pushes sample OTLP metrics, logs and traces for CI to validate the dashboard against |
+| `tools/wait_for_telemetry.py` | Waits until that sample telemetry can be queried, before CI validates |
 | `provisioning/`, `quadlet/` | Grafana dashboard provisioning, and the Podman service template |
 | `claude-settings/` | The Claude Code environment variables and the script that merges them into `settings.json` |
 | `usage-poller/` | The optional subscription usage poller and its systemd units |

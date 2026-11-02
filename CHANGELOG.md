@@ -13,6 +13,10 @@ the project uses [Semantic Versioning](https://semver.org/). Upgrade notes are i
 - `tools/validate_dashboard.py --require-data`: a query that succeeds but returns no rows counts as a failure,
   checked per target, so a renamed or dropped metric fails CI instead of leaving a panel empty. The CI smoke job
   uses it; panels that are empty on the sample telemetry are listed in the script's `ALLOW_EMPTY` constant.
+- `tools/wait_for_telemetry.py`: the smoke job waits until the sample telemetry can actually be queried
+  (a searchable trace in Tempo, two samples of the span metrics and of the counters) instead of sleeping
+  for a fixed ten seconds, and fails with what is still missing. `tools/send_sample_telemetry.py` sends two
+  samples per cumulative counter, so the dashboard's `rate()` panels have something to show.
 
 ### Fixed
 - `tools/validate_dashboard.py` now exits non-zero when a query fails; it used to print `FAILED: N` but still exit 0.

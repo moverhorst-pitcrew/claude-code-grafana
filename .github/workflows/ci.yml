@@ -63,8 +63,8 @@ jobs:
           exit 1
       - name: Send sample telemetry
         run: python3 tools/send_sample_telemetry.py
-      - name: Give the collector a moment to ingest it
-        run: sleep 10
+      - name: Wait until the telemetry is queryable
+        run: python3 tools/wait_for_telemetry.py
       - name: Validate the dashboard
         run: python3 tools/validate_dashboard.py --range 3h --require-data
       - name: Stack logs
