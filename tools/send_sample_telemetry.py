@@ -13,6 +13,7 @@ import json, os, sys, time, urllib.request
 OTLP = (sys.argv[1] if len(sys.argv) > 1 else os.environ.get("OTLP_URL", "http://127.0.0.1:4318")).rstrip("/")
 NOW = time.time()
 HOST = "ci-runner"
+STEP = 60  # gap between the two samples of a cumulative counter, see metric()
 
 SESSIONS = [
     {"session_id": "ci00000000000001", "model": "claude-sonnet-5-20261101", "query_source": "main", "effort": "",
@@ -43,9 +44,12 @@ def post(path, body):
 
 
 def metric(name, points, sum_monotonic=None):
-    """points: list of (attrs: dict, value)."""
-    data_points = [{"startTimeUnixNano": ns(NOW - 3600), "timeUnixNano": ns(NOW), "asDouble": float(v), "attributes": attrs(**a)}
-                   for a, v in points]
+    """points: list of (attrs: dict, value). A cumulative counter gets two data points STEP apart, half the value
+    and then the value: Prometheus stores one sample per data point, and rate() needs two samples in its window,
+    so with a single point every rate() panel of the dashboard stays empty."""
+    stamps = [(NOW - STEP, 0.5), (NOW, 1.0)] if sum_monotonic else [(NOW, 1.0)]
+    data_points = [{"startTimeUnixNano": ns(NOW - 3600), "timeUnixNano": ns(t), "asDouble": float(v) * f, "attributes": attrs(**a)}
+                   for a, v in points for t, f in stamps]
     m = {"name": name, "unit": ""}
     if sum_monotonic is None:
         m["gauge"] = {"dataPoints": data_points}

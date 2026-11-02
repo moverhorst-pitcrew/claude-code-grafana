@@ -52,6 +52,15 @@ class SampleTelemetryCoversTheDashboard(unittest.TestCase):
         for body in self.sent.values():
             json.dumps(body)
 
+    def test_every_cumulative_counter_carries_two_samples_so_rate_works(self):
+        for rm in self.sent["/v1/metrics"]["resourceMetrics"]:
+            for sm in rm["scopeMetrics"]:
+                for m in sm["metrics"]:
+                    if "sum" not in m:
+                        continue
+                    stamps = {p["timeUnixNano"] for p in m["sum"]["dataPoints"]}
+                    self.assertEqual(len(stamps), 2, f"{m['name']} needs two samples for rate() to return anything")
+
     def test_sends_one_trace_per_dashboard_span_name(self):
         used = set(re.findall(r'name\s*=\s*"(claude_code\.\w+)"', " ".join(dashboard_queries())))
         sent = {s["name"] for rs in self.sent["/v1/traces"]["resourceSpans"] for ss in rs["scopeSpans"] for s in ss["spans"]}
