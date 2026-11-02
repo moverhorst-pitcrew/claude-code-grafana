@@ -11,6 +11,7 @@ G = os.environ.get("GRAFANA_URL", "http://127.0.0.1:3000")
 # Without GRAFANA_PASSWORD the queries run anonymously, which works when anonymous viewing is enabled.
 auth = "Basic " + base64.b64encode(f"admin:{os.environ['GRAFANA_PASSWORD']}".encode()).decode() if "GRAFANA_PASSWORD" in os.environ else None
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+OPTIONS = ("--range", "--require-data")  # anything else is rejected: a typo in CI must not quietly skip a check
 # Panels that are empty by construction on the sample telemetry of tools/send_sample_telemetry.py, so
 # --require-data accepts no rows for them. A single target of a multi-target panel goes in as
 # ("panel title", "refId") rather than widening the entry to the whole panel.
@@ -33,6 +34,8 @@ def get(path, params):
 
 
 def main():
+    unknown = [a for a in sys.argv[1:] if a.startswith("--") and a not in OPTIONS]
+    if unknown: sys.exit(f"unknown option {unknown[0]}, this script takes {' and '.join(OPTIONS)}")
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     rng = sys.argv[sys.argv.index("--range") + 1] if "--range" in sys.argv else "3h"
     args = [a for a in args if a != rng]

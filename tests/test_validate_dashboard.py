@@ -81,6 +81,10 @@ class RequireData(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("FAILED: 1", out)
 
+    def test_a_misspelled_option_is_rejected_instead_of_ignored(self):
+        code, _ = run([panel("Cost by model", "sum(nothing)")], "--require_data")
+        self.assertIn("unknown option --require_data", str(code))
+
 
 class AllowlistMatchesTheDashboard(unittest.TestCase):
     def test_every_entry_names_a_real_panel_and_target(self):
