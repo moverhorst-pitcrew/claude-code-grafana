@@ -204,10 +204,75 @@
     {
       "id": 3,
       "type": "stat",
+      "title": "Internal errors",
+      "description": "internal_error events in the range: Claude Code hit an unexpected error of its own. Zero is healthy.",
+      "gridPos": {
+        "x": 6,
+        "y": 1,
+        "w": 6,
+        "h": 4
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "${ds_loki}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${ds_loki}"
+          },
+          "expr": "sum(count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"internal_error\" [$__range])) or vector(0)",
+          "legendFormat": "",
+          "refId": "A",
+          "queryType": "instant"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "si:",
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "0",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
       "title": "Failed MCP servers",
       "description": "MCP servers that failed to connect (per session start). A healthy setup has none.",
       "gridPos": {
-        "x": 6,
+        "x": 12,
         "y": 1,
         "w": 6,
         "h": 4
@@ -267,12 +332,12 @@
       }
     },
     {
-      "id": 4,
+      "id": 5,
       "type": "stat",
       "title": "Tool failure rate vs usual",
       "description": "Share of tool calls that failed now (dashboard range) divided by the same figure over your last 7d: 1.0x = as usual. Orange from 1.5x, red from 2.5x. Lightly smoothed (+1/+2) so a single failure early on does not explode the ratio.",
       "gridPos": {
-        "x": 12,
+        "x": 18,
         "y": 1,
         "w": 6,
         "h": 4
@@ -337,13 +402,13 @@
       }
     },
     {
-      "id": 5,
+      "id": 6,
       "type": "stat",
       "title": "Cache hit rate vs usual",
       "description": "Cache hit share now (dashboard range) divided by the same figure over your last 7d: 1.0x = as usual. Orange below 0.9x, red below 0.75x of usual. Low means prompts are being re-read at full price.",
       "gridPos": {
-        "x": 18,
-        "y": 1,
+        "x": 0,
+        "y": 5,
         "w": 6,
         "h": 4
       },
@@ -408,14 +473,14 @@
       }
     },
     {
-      "id": 6,
+      "id": 7,
       "type": "stat",
       "title": "API latency p95 vs usual",
       "description": "p95 request duration now (dashboard range) divided by the same figure over your last 7d: 1.0x = as usual. Orange from 1.5x, red from 2.5x.",
       "gridPos": {
-        "x": 0,
+        "x": 6,
         "y": 5,
-        "w": 8,
+        "w": 6,
         "h": 4
       },
       "datasource": {
@@ -478,14 +543,14 @@
       }
     },
     {
-      "id": 7,
+      "id": 8,
       "type": "stat",
       "title": "Time to first token p95 vs usual",
       "description": "p95 time to first token now (dashboard range) divided by the same figure over your last 7d: 1.0x = as usual. Orange from 1.5x, red from 2.5x.",
       "gridPos": {
-        "x": 8,
+        "x": 12,
         "y": 5,
-        "w": 8,
+        "w": 6,
         "h": 4
       },
       "datasource": {
@@ -548,14 +613,14 @@
       }
     },
     {
-      "id": 8,
+      "id": 9,
       "type": "stat",
       "title": "Cost per request vs usual",
       "description": "Average cost of an API request now (dashboard range) divided by the same figure over your last 7d: 1.0x = as usual. Orange from 1.5x, red from 2.5x. Rises when context grows or a pricier model is used.",
       "gridPos": {
-        "x": 16,
+        "x": 18,
         "y": 5,
-        "w": 8,
+        "w": 6,
         "h": 4
       },
       "datasource": {
@@ -618,7 +683,7 @@
       }
     },
     {
-      "id": 9,
+      "id": 10,
       "type": "row",
       "title": "Subscription limits",
       "collapsed": false,
@@ -631,7 +696,7 @@
       "panels": []
     },
     {
-      "id": 10,
+      "id": 11,
       "type": "stat",
       "title": "5-hour limit used",
       "description": "Share of the rolling 5-hour limit used.",
@@ -702,7 +767,7 @@
       }
     },
     {
-      "id": 11,
+      "id": 12,
       "type": "stat",
       "title": "5-hour pace",
       "description": "Used so far divided by the part of the window already gone, i.e. where this window ends if you keep the current pace. Orange from 85%; red above 100% (you would hit the limit before it resets). Early in a window it is unreliable.",
@@ -773,7 +838,7 @@
       }
     },
     {
-      "id": 12,
+      "id": 13,
       "type": "stat",
       "title": "5-hour resets in",
       "description": "",
@@ -828,7 +893,7 @@
       }
     },
     {
-      "id": 13,
+      "id": 14,
       "type": "stat",
       "title": "Weekly limit used",
       "description": "Share of the 7-day limit used (all models).",
@@ -899,7 +964,7 @@
       }
     },
     {
-      "id": 14,
+      "id": 15,
       "type": "stat",
       "title": "Weekly pace",
       "description": "Used so far divided by the part of the window already gone, i.e. where this window ends if you keep the current pace. Orange from 85%; red above 100% (you would hit the limit before it resets). Early in a window it is unreliable.",
@@ -970,7 +1035,7 @@
       }
     },
     {
-      "id": 15,
+      "id": 16,
       "type": "stat",
       "title": "Weekly resets in",
       "description": "",
@@ -1025,7 +1090,7 @@
       }
     },
     {
-      "id": 16,
+      "id": 17,
       "type": "timeseries",
       "title": "Limit usage over time",
       "description": "Utilization of each limit as reported by the usage endpoint; the 5-hour line drops back to 0 when its window resets.",
@@ -1120,7 +1185,7 @@
       ]
     },
     {
-      "id": 17,
+      "id": 18,
       "type": "bargauge",
       "title": "Weekly usage by product",
       "description": "Share of this week's usage by product (Claude Code, Chats, Cowork, ...).",
@@ -1195,7 +1260,7 @@
       ]
     },
     {
-      "id": 18,
+      "id": 19,
       "type": "bargauge",
       "title": "Weekly limits by model",
       "description": "Separate weekly limits for specific models, when your plan has them.",
@@ -1270,7 +1335,7 @@
       ]
     },
     {
-      "id": 19,
+      "id": 20,
       "type": "table",
       "title": "Plan",
       "description": "",
@@ -1413,7 +1478,7 @@
       ]
     },
     {
-      "id": 20,
+      "id": 21,
       "type": "stat",
       "title": "Credits used",
       "description": "Usage credits spent beyond your plan limits, per currency as reported by your account.",
@@ -1469,7 +1534,7 @@
       }
     },
     {
-      "id": 21,
+      "id": 22,
       "type": "stat",
       "title": "Credits",
       "description": "Whether usage credits are switched on. When off, hitting a limit stops requests.",
@@ -1538,7 +1603,7 @@
       }
     },
     {
-      "id": 22,
+      "id": 23,
       "type": "stat",
       "title": "Unnamed allowance",
       "description": "A dollar allowance the usage endpoint returns under an internal name (iguana_necktie); its meaning is not documented. Amount used so far.",
@@ -1593,7 +1658,7 @@
       }
     },
     {
-      "id": 23,
+      "id": 24,
       "type": "stat",
       "title": "Cap",
       "description": "Limit of the unnamed allowance to the left.",
@@ -1648,7 +1713,7 @@
       }
     },
     {
-      "id": 24,
+      "id": 25,
       "type": "stat",
       "title": "Usage data age",
       "description": "Time since the last successful usage poll (it runs every 4 minutes). Orange after 10 minutes, red after 25: usually an expired login token (it refreshes when Claude Code is used) or rate limiting.",
@@ -1719,7 +1784,7 @@
       }
     },
     {
-      "id": 25,
+      "id": 26,
       "type": "row",
       "title": "Overview (selected time range)",
       "collapsed": false,
@@ -1732,7 +1797,7 @@
       "panels": []
     },
     {
-      "id": 26,
+      "id": 27,
       "type": "stat",
       "title": "Sessions",
       "description": "Per-session counters: totals use max_over_time per series over the selected range, so a session that started before the range includes its earlier usage.",
@@ -1786,7 +1851,7 @@
       }
     },
     {
-      "id": 27,
+      "id": 28,
       "type": "stat",
       "title": "Prompts",
       "description": "Prompts you sent (user_prompt events).",
@@ -1839,7 +1904,7 @@
       }
     },
     {
-      "id": 28,
+      "id": 29,
       "type": "stat",
       "title": "Active time",
       "description": "Time actively working (you + Claude).",
@@ -1894,7 +1959,7 @@
       }
     },
     {
-      "id": 29,
+      "id": 30,
       "type": "stat",
       "title": "Total cost",
       "description": "Per-session counters: totals use max_over_time per series over the selected range, so a session that started before the range includes its earlier usage.",
@@ -1949,7 +2014,7 @@
       }
     },
     {
-      "id": 30,
+      "id": 31,
       "type": "stat",
       "title": "Total tokens",
       "description": "Per-session counters: totals use max_over_time per series over the selected range, so a session that started before the range includes its earlier usage.",
@@ -2003,7 +2068,7 @@
       }
     },
     {
-      "id": 31,
+      "id": 32,
       "type": "stat",
       "title": "Avg cost / session",
       "description": "",
@@ -2058,7 +2123,7 @@
       }
     },
     {
-      "id": 32,
+      "id": 33,
       "type": "stat",
       "title": "Cache hit ratio",
       "description": "cacheRead / (cacheRead + input + cacheCreation). Higher = cheaper and faster.",
@@ -2129,7 +2194,7 @@
       }
     },
     {
-      "id": 33,
+      "id": 34,
       "type": "stat",
       "title": "Requests",
       "description": "api_request events.",
@@ -2182,7 +2247,7 @@
       }
     },
     {
-      "id": 34,
+      "id": 35,
       "type": "stat",
       "title": "API p95 latency",
       "description": "p95 request duration across all models.",
@@ -2236,7 +2301,7 @@
       }
     },
     {
-      "id": 35,
+      "id": 36,
       "type": "stat",
       "title": "Tool success rate",
       "description": "Share of tool calls that succeeded.",
@@ -2306,7 +2371,7 @@
       }
     },
     {
-      "id": 36,
+      "id": 37,
       "type": "stat",
       "title": "Lines",
       "description": "Lines added + removed by Claude's edits.",
@@ -2360,7 +2425,7 @@
       }
     },
     {
-      "id": 37,
+      "id": 38,
       "type": "stat",
       "title": "Commits",
       "description": "",
@@ -2414,7 +2479,7 @@
       }
     },
     {
-      "id": 38,
+      "id": 39,
       "type": "stat",
       "title": "PRs",
       "description": "Pull requests created.",
@@ -2468,7 +2533,7 @@
       }
     },
     {
-      "id": 39,
+      "id": 40,
       "type": "row",
       "title": "Cost and tokens",
       "collapsed": false,
@@ -2481,7 +2546,7 @@
       "panels": []
     },
     {
-      "id": 40,
+      "id": 41,
       "type": "timeseries",
       "title": "Cost per hour by model",
       "description": "Exact spend per interval, summed from api_request events (cost_usd). Shown as a rate per hour, so the scale is the same at every time range.",
@@ -2629,7 +2694,7 @@
       ]
     },
     {
-      "id": 41,
+      "id": 42,
       "type": "timeseries",
       "title": "Tokens per minute by type",
       "description": "Exact tokens per interval from api_request events. Shown as a rate per min, so the scale is the same at every time range.",
@@ -2759,7 +2824,7 @@
       ]
     },
     {
-      "id": 42,
+      "id": 43,
       "type": "bargauge",
       "title": "Cost by model",
       "description": "",
@@ -2909,7 +2974,7 @@
       ]
     },
     {
-      "id": 43,
+      "id": 44,
       "type": "bargauge",
       "title": "Cost by query source",
       "description": "main = your prompts; other values are sub-agents and background queries.",
@@ -2983,7 +3048,7 @@
       ]
     },
     {
-      "id": 44,
+      "id": 45,
       "type": "bargauge",
       "title": "Cost by effort",
       "description": "",
@@ -3057,7 +3122,7 @@
       ]
     },
     {
-      "id": 45,
+      "id": 46,
       "type": "bargauge",
       "title": "Tokens by type",
       "description": "",
@@ -3158,7 +3223,7 @@
       ]
     },
     {
-      "id": 46,
+      "id": 47,
       "type": "table",
       "title": "Top sessions by cost",
       "description": "Session = first 8 characters of the session id.",
@@ -3279,7 +3344,7 @@
       ]
     },
     {
-      "id": 47,
+      "id": 48,
       "type": "timeseries",
       "title": "Cost per API request (avg)",
       "description": "Average cost_usd per request, by model.",
@@ -3427,7 +3492,7 @@
       ]
     },
     {
-      "id": 48,
+      "id": 49,
       "type": "bargauge",
       "title": "Cost by subagent",
       "description": "Cost of subagent runs (Explore, general-purpose, custom agents). The main conversation is left out: it would dwarf them.",
@@ -3501,7 +3566,7 @@
       ]
     },
     {
-      "id": 49,
+      "id": 50,
       "type": "bargauge",
       "title": "Cost by MCP server",
       "description": "Cost of the model turns that handled MCP tool calls, per MCP server. Built-in tools are left out.",
@@ -3575,7 +3640,7 @@
       ]
     },
     {
-      "id": 50,
+      "id": 51,
       "type": "bargauge",
       "title": "Tokens by MCP tool",
       "description": "Tokens spent on turns that handled each MCP tool's result (top 5). Shows which MCP tools fill the context.",
@@ -3648,7 +3713,7 @@
       ]
     },
     {
-      "id": 51,
+      "id": 52,
       "type": "bargauge",
       "title": "Cost by version",
       "description": "Cost per Claude Code version, so a release that changes your spend stands out.",
@@ -3722,7 +3787,7 @@
       ]
     },
     {
-      "id": 52,
+      "id": 53,
       "type": "bargauge",
       "title": "Cost by skill",
       "description": "Cost of the model turns that ran while a skill was active. Turns without a skill are left out.",
@@ -3796,7 +3861,7 @@
       ]
     },
     {
-      "id": 53,
+      "id": 54,
       "type": "bargauge",
       "title": "Cost by terminal type",
       "description": "An empty terminal_type is an interactive session; non-interactive is a headless run (claude -p, agents, CI).",
@@ -3870,7 +3935,7 @@
       ]
     },
     {
-      "id": 54,
+      "id": 55,
       "type": "bargauge",
       "title": "Cost by host",
       "description": "Cost per machine. Needs OTEL_RESOURCE_ATTRIBUTES=host.name=<name> on each Claude Code install (claude-settings/apply-claude-settings.py sets it); data from before that shows as one unnamed host.",
@@ -3944,7 +4009,7 @@
       ]
     },
     {
-      "id": 55,
+      "id": 56,
       "type": "bargauge",
       "title": "Requests by host",
       "description": "API requests per machine in the selected range.",
@@ -4016,7 +4081,7 @@
       ]
     },
     {
-      "id": 56,
+      "id": 57,
       "type": "row",
       "title": "Productivity",
       "collapsed": false,
@@ -4029,7 +4094,7 @@
       "panels": []
     },
     {
-      "id": 57,
+      "id": 58,
       "type": "bargauge",
       "title": "Lines added vs removed",
       "description": "Lines changed by Claude's edits in the selected range.",
@@ -4102,7 +4167,7 @@
       ]
     },
     {
-      "id": 58,
+      "id": 59,
       "type": "bargauge",
       "title": "Edit decisions",
       "description": "Permission decisions for Edit, Write and NotebookEdit.",
@@ -4175,7 +4240,7 @@
       ]
     },
     {
-      "id": 59,
+      "id": 60,
       "type": "bargauge",
       "title": "Edits by language",
       "description": "",
@@ -4248,7 +4313,7 @@
       ]
     },
     {
-      "id": 60,
+      "id": 61,
       "type": "stat",
       "title": "Edit accept rate",
       "description": "Share of edit permission prompts accepted.",
@@ -4319,7 +4384,7 @@
       }
     },
     {
-      "id": 61,
+      "id": 62,
       "type": "timeseries",
       "title": "Prompts per hour",
       "description": "How often you prompt (user_prompt events). Shown as a rate per hour, so the scale is the same at every time range.",
@@ -4391,7 +4456,7 @@
       ]
     },
     {
-      "id": 62,
+      "id": 63,
       "type": "timeseries",
       "title": "Activity share by type",
       "description": "Share of time spent active, summed over sessions (above 100% means several sessions at once). user = you typing/reading; cli = Claude working.",
@@ -4478,7 +4543,7 @@
       ]
     },
     {
-      "id": 63,
+      "id": 64,
       "type": "timeseries",
       "title": "Sessions started per hour",
       "description": "Sessions that began in each interval (fresh / continue / resume). Shown as a rate per hour, so the scale is the same at every time range.",
@@ -4551,7 +4616,7 @@
       ]
     },
     {
-      "id": 64,
+      "id": 65,
       "type": "row",
       "title": "API performance (from api_request logs)",
       "collapsed": false,
@@ -4564,7 +4629,7 @@
       "panels": []
     },
     {
-      "id": 65,
+      "id": 66,
       "type": "timeseries",
       "title": "API latency p50 / p95",
       "description": "Dashed lines: your own p95 over the last 7 days, and 1.5x that (where the Health tile turns orange).",
@@ -4927,7 +4992,7 @@
       ]
     },
     {
-      "id": 66,
+      "id": 67,
       "type": "timeseries",
       "title": "Time to first token p50 / p95",
       "description": "Dashed lines: your own p95 over the last 7 days, and 1.5x that (where the Health tile turns orange).",
@@ -5290,7 +5355,7 @@
       ]
     },
     {
-      "id": 67,
+      "id": 68,
       "type": "timeseries",
       "title": "API requests per minute",
       "description": "Shown as a rate per min, so the scale is the same at every time range.",
@@ -5438,7 +5503,7 @@
       ]
     },
     {
-      "id": 68,
+      "id": 69,
       "type": "timeseries",
       "title": "Output tokens per request (avg)",
       "description": "",
@@ -5585,7 +5650,7 @@
       ]
     },
     {
-      "id": 69,
+      "id": 70,
       "type": "timeseries",
       "title": "Cache read / request (avg)",
       "description": "",
@@ -5732,7 +5797,7 @@
       ]
     },
     {
-      "id": 70,
+      "id": 71,
       "type": "table",
       "title": "Requests by effort and speed",
       "description": "Reasoning effort and speed setting (e.g. fast mode) per request.",
@@ -5840,7 +5905,7 @@
       ]
     },
     {
-      "id": 71,
+      "id": 72,
       "type": "timeseries",
       "title": "API errors per hour",
       "description": "api_error / api_retries_exhausted events. Empty while the API is healthy (verified: a bad model name produces an HTTP 404 here). Shown as a rate per hour, so the scale is the same at every time range.",
@@ -5998,7 +6063,7 @@
       ]
     },
     {
-      "id": 72,
+      "id": 73,
       "type": "row",
       "title": "Tools, permissions and skills",
       "collapsed": false,
@@ -6011,7 +6076,7 @@
       "panels": []
     },
     {
-      "id": 73,
+      "id": 74,
       "type": "timeseries",
       "title": "Tool calls per minute",
       "description": "Shown as a rate per min, so the scale is the same at every time range.",
@@ -6083,7 +6148,7 @@
       ]
     },
     {
-      "id": 74,
+      "id": 75,
       "type": "timeseries",
       "title": "Tool duration p95 by tool",
       "description": "",
@@ -6155,7 +6220,7 @@
       ]
     },
     {
-      "id": 75,
+      "id": 76,
       "type": "timeseries",
       "title": "Tool failures per hour",
       "description": "tool_result events with success=false. Shown as a rate per hour, so the scale is the same at every time range.",
@@ -6227,7 +6292,7 @@
       ]
     },
     {
-      "id": 76,
+      "id": 77,
       "type": "timeseries",
       "title": "Permission decisions per minute",
       "description": "accept/reject and who decided (config, user, hook ...). Shown as a rate per min, so the scale is the same at every time range.",
@@ -6320,7 +6385,7 @@
       ]
     },
     {
-      "id": 77,
+      "id": 78,
       "type": "table",
       "title": "Permission mode and auto-mode verdicts",
       "description": "Permission mode in force and the auto-mode classifier's verdict per tool call.",
@@ -6467,7 +6532,7 @@
       ]
     },
     {
-      "id": 78,
+      "id": 79,
       "type": "timeseries",
       "title": "Tool result size p95 by tool",
       "description": "Large results fill the context window; watch for tools that return a lot.",
@@ -6539,7 +6604,7 @@
       ]
     },
     {
-      "id": 79,
+      "id": 80,
       "type": "table",
       "title": "MCP server connections",
       "description": "mcp_server_connection events in the range. 'failed' means a configured server did not start; the error code says why (e.g. an HTTP status).",
@@ -6655,7 +6720,7 @@
       ]
     },
     {
-      "id": 80,
+      "id": 81,
       "type": "table",
       "title": "Skills activated",
       "description": "Skills loaded, and whether you or Claude triggered them.",
@@ -6763,7 +6828,7 @@
       ]
     },
     {
-      "id": 81,
+      "id": 82,
       "type": "table",
       "title": "Slash commands used",
       "description": "Slash commands typed as prompts (/clear, /usage, custom commands ...).",
@@ -6869,7 +6934,7 @@
       ]
     },
     {
-      "id": 82,
+      "id": 83,
       "type": "row",
       "title": "Subagents",
       "collapsed": false,
@@ -6882,7 +6947,7 @@
       "panels": []
     },
     {
-      "id": 83,
+      "id": 84,
       "type": "table",
       "title": "Subagent runs by type",
       "description": "subagent_completed events: which subagents ran, and on which model.",
@@ -7012,7 +7077,7 @@
       ]
     },
     {
-      "id": 84,
+      "id": 85,
       "type": "timeseries",
       "title": "Subagent duration (avg)",
       "description": "Wall-clock time per subagent run.",
@@ -7084,7 +7149,7 @@
       ]
     },
     {
-      "id": 85,
+      "id": 86,
       "type": "timeseries",
       "title": "Subagent tokens per run (avg)",
       "description": "Total tokens a subagent used (counted separately from the main conversation).",
@@ -7155,7 +7220,7 @@
       ]
     },
     {
-      "id": 86,
+      "id": 87,
       "type": "row",
       "title": "Hooks and context compaction",
       "collapsed": false,
@@ -7168,7 +7233,7 @@
       "panels": []
     },
     {
-      "id": 87,
+      "id": 88,
       "type": "stat",
       "title": "Hook runs",
       "description": "Hook executions in the range (one per hook event, covering all hooks that matched it).",
@@ -7221,7 +7286,7 @@
       }
     },
     {
-      "id": 88,
+      "id": 89,
       "type": "stat",
       "title": "Hook problems",
       "description": "Hook runs that blocked an action or errored (num_blocking + num_non_blocking_error). Zero is healthy; a hook that blocks on purpose will show up here too.",
@@ -7286,7 +7351,7 @@
       }
     },
     {
-      "id": 89,
+      "id": 90,
       "type": "timeseries",
       "title": "Hook runs per minute",
       "description": "PreToolUse / PostToolUse / SessionStart / UserPromptSubmit ... hook executions. Shown as a rate per min, so the scale is the same at every time range.",
@@ -7358,7 +7423,7 @@
       ]
     },
     {
-      "id": 90,
+      "id": 91,
       "type": "timeseries",
       "title": "Hook duration p95 by hook",
       "description": "Total time a hook event took. Hooks run in the critical path: a slow one delays every tool call or prompt it is attached to.",
@@ -7430,7 +7495,7 @@
       ]
     },
     {
-      "id": 91,
+      "id": 92,
       "type": "table",
       "title": "Hooks by event",
       "description": "Hook executions per hook event and matcher in the range.",
@@ -7536,7 +7601,7 @@
       ]
     },
     {
-      "id": 92,
+      "id": 93,
       "type": "stat",
       "title": "Compactions",
       "description": "Times the conversation was compacted to free context (automatically when it filled up, or by /compact).",
@@ -7589,7 +7654,7 @@
       }
     },
     {
-      "id": 93,
+      "id": 94,
       "type": "stat",
       "title": "Context freed",
       "description": "Share of the context removed by compactions in the range.",
@@ -7643,7 +7708,7 @@
       }
     },
     {
-      "id": 94,
+      "id": 95,
       "type": "timeseries",
       "title": "Context size before and after compaction",
       "description": "Tokens in context when a compaction ran, and what was left afterwards.",
@@ -7724,7 +7789,7 @@
       ]
     },
     {
-      "id": 95,
+      "id": 96,
       "type": "timeseries",
       "title": "Compaction duration",
       "description": "How long a compaction took. Claude is busy summarising during this time.",
@@ -7796,7 +7861,7 @@
       ]
     },
     {
-      "id": 96,
+      "id": 97,
       "type": "table",
       "title": "Compactions by trigger",
       "description": "auto = the context window filled up; manual = /compact. OK=false means the compaction failed.",
@@ -7943,7 +8008,7 @@
       ]
     },
     {
-      "id": 97,
+      "id": 98,
       "type": "row",
       "title": "Traces (span metrics + Tempo)",
       "collapsed": false,
@@ -7956,7 +8021,7 @@
       "panels": []
     },
     {
-      "id": 98,
+      "id": 99,
       "type": "timeseries",
       "title": "Span rate by type",
       "description": "interaction = one prompt; llm_request = one API call; tool / tool.execution / tool.blocked_on_user. The binary also defines mcp.rpc, hook, subagent.spawn, compaction and bash.subprocess spans, but they were not exported in testing; they would show up here if emitted.",
@@ -8050,7 +8115,7 @@
       ]
     },
     {
-      "id": 99,
+      "id": 100,
       "type": "timeseries",
       "title": "Span p95 latency by type",
       "description": "",
@@ -8144,7 +8209,7 @@
       ]
     },
     {
-      "id": 100,
+      "id": 101,
       "type": "timeseries",
       "title": "Span errors per hour",
       "description": "Error spans per interval; empty is good. Shown as a rate per hour, so the scale is the same at every time range.",
@@ -8238,7 +8303,7 @@
       ]
     },
     {
-      "id": 101,
+      "id": 102,
       "type": "table",
       "title": "Recent interactions (click a trace ID to open the waterfall)",
       "description": "",
@@ -8305,7 +8370,7 @@
       ]
     },
     {
-      "id": 102,
+      "id": 103,
       "type": "table",
       "title": "Slow LLM requests (over 3 s, slowest first)",
       "description": "",
@@ -8427,7 +8492,7 @@
       ]
     },
     {
-      "id": 103,
+      "id": 104,
       "type": "table",
       "title": "Slow tool calls (over 1 s, slowest first)",
       "description": "Whole tool call, including any time spent waiting for a permission answer.",
@@ -8547,7 +8612,7 @@
       ]
     },
     {
-      "id": 104,
+      "id": 105,
       "type": "row",
       "title": "Events, plugins and logs",
       "collapsed": false,
@@ -8560,7 +8625,7 @@
       "panels": []
     },
     {
-      "id": 105,
+      "id": 106,
       "type": "timeseries",
       "title": "Events per minute by type",
       "description": "plugin_loaded is excluded; it fires many times at every startup. Shown as a rate per min, so the scale is the same at every time range.",
@@ -8639,7 +8704,7 @@
       ]
     },
     {
-      "id": 106,
+      "id": 107,
       "type": "table",
       "title": "Plugins loaded",
       "description": "Plugins Claude Code loaded in the range (one load per session start).",
@@ -8753,7 +8818,7 @@
       ]
     },
     {
-      "id": 107,
+      "id": 108,
       "type": "logs",
       "title": "Event stream (prompt text is redacted by default)",
       "description": "",

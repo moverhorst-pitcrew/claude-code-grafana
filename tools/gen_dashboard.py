@@ -316,22 +316,25 @@ BASELINE_LINES = [
 panels += [
     stat("API errors", f'sum(count_over_time({ev("api_error")} [{RNG}])) or vector(0)', "short", 0, y, 6, 4, ds=LOKI, bg=True, steps=ANY,
          desc="api_error events in the range. A healthy API has none, so any error is flagged."),
+    stat("Internal errors", f'sum(count_over_time({ev("internal_error")} [{RNG}])) or vector(0)', "short",
+         6, y, 6, 4, ds=LOKI, bg=True, steps=ANY,
+         desc="internal_error events in the range: Claude Code hit an unexpected error of its own. Zero is healthy."),
     stat("Failed MCP servers", f'sum(count_over_time({ev("mcp_server_connection", MCP_FAILED)} [{RNG}])) or vector(0)', "short",
-         6, y, 6, 4, ds=LOKI, bg=True, steps=ANY, desc="MCP servers that failed to connect (per session start). A healthy setup has none."),
+         12, y, 6, 4, ds=LOKI, bg=True, steps=ANY, desc="MCP servers that failed to connect (per session start). A healthy setup has none."),
     stat("Tool failure rate vs usual",
          f'((({tool_n(RNG, True)} + 1) / ({tool_n(RNG)} + 2)) / (({tool_n(BASE, True)} + 1) / ({tool_n(BASE)} + 2)))',
-         X, 12, y, 6, 4, ds=LOKI, bg=True, steps=UP, nv="no data",
+         X, 18, y, 6, 4, ds=LOKI, bg=True, steps=UP, nv="no data",
          desc=ratio_note("Share of tool calls that failed") + " Lightly smoothed (+1/+2) so a single failure early on does not explode the ratio."),
-    stat("Cache hit rate vs usual", f"({cache_ratio(RNG)}) / ({cache_ratio(BASE)})", X, 18, y, 6, 4, bg=True, steps=DOWN, nv="no data",
-         desc=ratio_note("Cache hit share", up=False) + " Low means prompts are being re-read at full price."),
 ]
 y += 4
 panels += [
-    stat("API latency p95 vs usual", lat_ratio("duration_ms"), X, 0, y, 8, 4, ds=LOKI, bg=True, steps=UP, nv="no data",
+    stat("Cache hit rate vs usual", f"({cache_ratio(RNG)}) / ({cache_ratio(BASE)})", X, 0, y, 6, 4, bg=True, steps=DOWN, nv="no data",
+         desc=ratio_note("Cache hit share", up=False) + " Low means prompts are being re-read at full price."),
+    stat("API latency p95 vs usual", lat_ratio("duration_ms"), X, 6, y, 6, 4, ds=LOKI, bg=True, steps=UP, nv="no data",
          desc=ratio_note("p95 request duration")),
-    stat("Time to first token p95 vs usual", lat_ratio("ttft_ms"), X, 8, y, 8, 4, ds=LOKI, bg=True, steps=UP, nv="no data",
+    stat("Time to first token p95 vs usual", lat_ratio("ttft_ms"), X, 12, y, 6, 4, ds=LOKI, bg=True, steps=UP, nv="no data",
          desc=ratio_note("p95 time to first token")),
-    stat("Cost per request vs usual", f"{cost_per_req(RNG)} / {cost_per_req(BASE)}", X, 16, y, 8, 4, ds=LOKI, bg=True, steps=UP, nv="no data",
+    stat("Cost per request vs usual", f"{cost_per_req(RNG)} / {cost_per_req(BASE)}", X, 18, y, 6, 4, ds=LOKI, bg=True, steps=UP, nv="no data",
          desc=ratio_note("Average cost of an API request") + " Rises when context grows or a pricier model is used."),
 ]
 y += 4
