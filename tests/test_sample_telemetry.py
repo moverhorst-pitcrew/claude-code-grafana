@@ -18,6 +18,15 @@ def sent_metric_names(payload):
     return {m["name"] for rm in payload["resourceMetrics"] for sm in rm["scopeMetrics"] for m in sm["metrics"]}
 
 
+def cost_metric_points(payload):
+    return [dp for rm in payload["resourceMetrics"] for sm in rm["scopeMetrics"] for m in sm["metrics"]
+            if m["name"] == "claude_code_cost_usage_USD_total" for dp in m["sum"]["dataPoints"]]
+
+
+def label(point, key):
+    return next(a["value"]["stringValue"] for a in point["attributes"] if a["key"] == key)
+
+
 def sent_event_names(payload):
     names = set()
     for rl in payload["resourceLogs"]:
@@ -51,6 +60,13 @@ class SampleTelemetryCoversTheDashboard(unittest.TestCase):
     def test_payloads_are_json_serialisable(self):
         for body in self.sent.values():
             json.dumps(body)
+
+    def test_cost_metric_carries_skill_name_and_terminal_type(self):
+        points = cost_metric_points(self.sent["/v1/metrics"])
+        skill_names = {label(p, "skill_name") for p in points}
+        terminal_types = {label(p, "terminal_type") for p in points}
+        self.assertTrue(any(skill_names), "expected a non-empty skill_name on the cost metric")
+        self.assertEqual(terminal_types, {"", "non-interactive"})
 
     def test_sends_one_trace_per_dashboard_span_name(self):
         used = set(re.findall(r'name\s*=\s*"(claude_code\.\w+)"', " ".join(dashboard_queries())))
