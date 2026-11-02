@@ -11,6 +11,9 @@ the project uses [Semantic Versioning](https://semver.org/). Upgrade notes are i
 - `examples/alerting/`: Grafana alert rule examples for weekly usage above 80%, 5-hour usage
   above 90%, a stale usage poller, and daily cost per host above a threshold.
 - Cost by skill and cost by terminal type (interactive vs headless) bar gauge panels.
+- `tests/test_versions.py`: fails CI when the `grafana/otel-lgtm` version drifts between
+  `docker-compose.yml`, the Quadlet unit and the README Compatibility line. A `dashboard-smoke`
+  CI step also checks that the Quadlet's pinned `@sha256` digest still matches its tag.
 
 ### Fixed
 - `tools/validate_dashboard.py` now exits non-zero when a query fails; it used to print `FAILED: N` but still exit 0.
