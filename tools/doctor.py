@@ -22,6 +22,8 @@ LOKI_SELECTOR = '{service_name="claude-code"}'
 POLLER_MAX_AGE = 15 * 60
 
 FIX_SETTINGS = "run claude-settings/apply-claude-settings.py, then start a *new* Claude Code session (settings are read at startup)"
+FIX_SETTINGS_VALUES = ("deliberate overrides (another endpoint, a different export interval) are fine; otherwise run "
+                       "claude-settings/apply-claude-settings.py, which overwrites them, and start a *new* Claude Code session")
 FIX_STACK = "the stack is not running: ./install.sh, or docker compose up -d"
 FIX_METRICS = ("start a new Claude Code session (settings are read at startup); if logs and traces do arrive but metrics do not, "
                "Claude Code is sending delta metrics and Prometheus rejects them: set OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE=cumulative")
@@ -74,15 +76,20 @@ def check_settings():
     cfg = os.environ.get("CLAUDE_CONFIG_DIR") or os.path.expanduser("~/.claude")
     path = os.path.join(cfg, "settings.json")
     with open(os.path.join(ROOT, "claude-settings", "claude-telemetry-env.json")) as f:
-        keys = list(json.load(f))
+        want = json.load(f)
     if not os.path.exists(path):
         return "FAIL", f"{path} does not exist", FIX_SETTINGS
     with open(path) as f:
         env = json.load(f).get("env", {})
-    missing = [k for k in keys if k not in env]
+    missing = [k for k in want if k not in env]
     if missing:
-        return "FAIL", f"{len(missing)} of {len(keys)} telemetry variables missing from {path}: {', '.join(missing)}", FIX_SETTINGS
-    return "ok", f"all {len(keys)} telemetry variables present in {path}", None
+        return "FAIL", f"{len(missing)} of {len(want)} telemetry variables missing from {path}: {', '.join(missing)}", FIX_SETTINGS
+    # A value that differs is not necessarily wrong (a remote endpoint, a longer interval), but console exporters
+    # or delta temporality do leave the dashboard empty, so name what was found next to what was expected.
+    differing = [f"{k}={env[k]} (expected {v})" for k, v in want.items() if str(env[k]) != v]
+    if differing:
+        return "warn", f"{len(differing)} of {len(want)} telemetry variables differ in {path}: {', '.join(differing)}", FIX_SETTINGS_VALUES
+    return "ok", f"all {len(want)} telemetry variables present with the expected values in {path}", None
 
 
 def check_ports():

@@ -12,7 +12,7 @@ from tests.helpers import ROOT, load
 doctor = load("doctor", "tools/doctor.py")
 
 with open(os.path.join(ROOT, "claude-settings", "claude-telemetry-env.json")) as f:
-    TELEMETRY_KEYS = list(json.load(f))
+    TELEMETRY_ENV = json.load(f)
 
 DATASOURCES = [{"type": "prometheus", "uid": "prom-1"}, {"type": "loki", "uid": "loki-1"}, {"type": "tempo", "uid": "tempo-1"}]
 
@@ -41,7 +41,7 @@ class DoctorTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
-        self.settings(dict.fromkeys(TELEMETRY_KEYS, "set"))
+        self.settings(dict(TELEMETRY_ENV))
         os.environ["CLAUDE_CONFIG_DIR"] = self.tmp.name
         self.addCleanup(os.environ.pop, "CLAUDE_CONFIG_DIR", None)
         self.open_ports(True)
@@ -80,8 +80,17 @@ class DoctorTest(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertIn("ok", self.line(out, "Claude Code settings"))
 
+    def test_a_wrong_telemetry_value_warns_with_found_and_expected(self):
+        self.settings({**TELEMETRY_ENV, "OTEL_METRICS_EXPORTER": "console"})
+        code, out = self.run_doctor()
+        self.assertEqual(code, 0)  # an override can be deliberate, so this is not a failure
+        line = self.line(out, "Claude Code settings")
+        self.assertTrue(line.startswith("warn"), line)
+        self.assertIn("OTEL_METRICS_EXPORTER=console", line)
+        self.assertIn("expected otlp", line)
+
     def test_a_missing_telemetry_key_is_named(self):
-        self.settings({k: "set" for k in TELEMETRY_KEYS if k != "OTEL_LOGS_EXPORTER"})
+        self.settings({k: v for k, v in TELEMETRY_ENV.items() if k != "OTEL_LOGS_EXPORTER"})
         code, out = self.run_doctor()
         self.assertEqual(code, 1)
         line = self.line(out, "Claude Code settings")
