@@ -43,8 +43,13 @@ def api(path, params=None):
     """GET a Grafana API path (including the datasource proxy) and parse the JSON answer."""
     url = G + path + ("?" + urllib.parse.urlencode(params) if params else "")
     req = urllib.request.Request(url, headers={"Authorization": auth} if auth else {})
-    with urllib.request.urlopen(req, timeout=30) as r:
-        return json.load(r)
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            return json.load(r)
+    except urllib.error.HTTPError as e:
+        # The answer says why a query was rejected; the exception on its own only says "400 Bad Request".
+        e.body = e.read().decode(errors="replace")[:300].replace("\n", " ")
+        raise
 
 
 def query_failed(e, fix):
@@ -54,6 +59,8 @@ def query_failed(e, fix):
         # 403 as well as 401: listing datasources needs the admin role, which a Viewer login does not have.
         if e.code in (401, 403):
             return "warn", f"could not check: Grafana answered {e.code}", FIX_AUTH
+        body = getattr(e, "body", "")
+        return "FAIL", f"Grafana answered {e.code} {e.reason}" + (f": {body}" if body else ""), fix
     elif isinstance(e, urllib.error.URLError):
         return "FAIL", f"could not reach Grafana at {G}: {brief(e.reason)}", FIX_STACK
     return "FAIL", f"could not query Grafana: {brief(e)}", fix

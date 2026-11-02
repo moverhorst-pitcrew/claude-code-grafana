@@ -10,6 +10,7 @@ from contextlib import redirect_stdout
 from tests.helpers import ROOT, load
 
 doctor = load("doctor", "tools/doctor.py")
+REAL_API = doctor.api  # kept, because setUp replaces doctor.api with a stub
 
 with open(os.path.join(ROOT, "claude-settings", "claude-telemetry-env.json")) as f:
     TELEMETRY_ENV = json.load(f)
@@ -202,6 +203,23 @@ class DoctorTest(unittest.TestCase):
                 for name in ("Prometheus", "Loki", "Usage poller", "Grafana datasources"):
                     self.assertTrue(self.line(out, name).startswith("warn"), self.line(out, name))
                 self.assertIn("GRAFANA_PASSWORD", out)
+
+    def test_a_rejected_query_prints_what_grafana_said(self):
+        import urllib.error
+        import urllib.request
+
+        def urlopen(req, timeout=None):
+            raise urllib.error.HTTPError(req.full_url, 400, "Bad Request", {},
+                                         io.BytesIO(b'{"error":"parse error: unexpected character"}'))
+
+        self.addCleanup(setattr, urllib.request, "urlopen", urllib.request.urlopen)
+        urllib.request.urlopen = urlopen
+        self.stack(types.SimpleNamespace(api=REAL_API))
+        code, out = self.run_doctor()
+        self.assertEqual(code, 1)
+        line = self.line(out, "Prometheus")
+        self.assertIn("400", line)
+        self.assertIn("parse error: unexpected character", line)
 
     def test_an_unreachable_grafana_points_at_the_stack(self):
         import urllib.error
