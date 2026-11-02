@@ -21,6 +21,7 @@ the project uses [Semantic Versioning](https://semver.org/). Upgrade notes are i
 - `tests/test_versions.py`: fails CI when the `grafana/otel-lgtm` version drifts between
   `docker-compose.yml`, the Quadlet unit and the README Compatibility line. A `dashboard-smoke`
   CI step also checks that the Quadlet's pinned `@sha256` digest still matches its tag.
+
 ### Fixed
 - `tools/validate_dashboard.py` now exits non-zero when a query fails; it used to print `FAILED: N` but still exit 0.
 
@@ -39,6 +40,7 @@ the project uses [Semantic Versioning](https://semver.org/). Upgrade notes are i
   into any Grafana.
 - `grafana/otel-lgtm` is pinned to 0.39.0 (Grafana 13.3) instead of `latest`.
 - The compose poller runs on `python:3.15-alpine`; CI tests on Python 3.11 and 3.15 and uses `actions/checkout` and `actions/setup-python` v7.
+
 
 ### Fixed
 - The usage poller backs off 2, 4, 8, then 10 minutes after a rate limit, as documented (it started at 1 minute), and
