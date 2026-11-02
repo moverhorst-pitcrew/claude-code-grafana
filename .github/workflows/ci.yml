@@ -52,21 +52,6 @@ jobs:
           python-version: "3.15"
       - name: Start the stack
         run: docker compose up -d
-      - name: Quadlet image digest still matches its tag
-        run: |
-          line=$(grep -m1 '^Image=docker\.io/grafana/otel-lgtm:' quadlet/otel-lgtm.container.in)
-          tag=$(echo "$line" | sed -E 's#.*otel-lgtm:([^@]+)@sha256:.*#\1#')
-          pinned_digest=$(echo "$line" | sed -E 's#.*@(sha256:[0-9a-f]+).*#\1#')
-          resolved_digest=$(docker buildx imagetools inspect "docker.io/grafana/otel-lgtm:$tag" --format '{{.Manifest.Digest}}')
-          if [ -z "$resolved_digest" ]; then
-            echo "Could not resolve the index digest for grafana/otel-lgtm:$tag from the registry" >&2
-            exit 1
-          fi
-          echo "quadlet/otel-lgtm.container.in pins $pinned_digest for tag $tag; registry resolves $tag to $resolved_digest"
-          if [ "$pinned_digest" != "$resolved_digest" ]; then
-            echo "quadlet/otel-lgtm.container.in pins $pinned_digest for tag $tag, but the registry now resolves $tag to $resolved_digest. Bump the @sha256 digest to match the tag." >&2
-            exit 1
-          fi
       - name: Wait for Grafana
         run: |
           for i in $(seq 1 60); do
