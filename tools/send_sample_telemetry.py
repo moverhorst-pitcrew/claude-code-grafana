@@ -13,7 +13,10 @@ import json, os, sys, time, urllib.request
 OTLP = (sys.argv[1] if len(sys.argv) > 1 else os.environ.get("OTLP_URL", "http://127.0.0.1:4318")).rstrip("/")
 NOW = time.time()
 HOST = "ci-runner"
-STEP = 60  # gap between the two samples of a cumulative counter, see metric()
+# Gap between the two samples of a cumulative counter, see metric(). It has to stay under the smallest
+# $__rate_interval tools/validate_dashboard.py generates, which is 60 s at --range 15m: a PromQL range
+# selector is left-open, so at exactly 60 s apart the two samples never fall inside one window.
+STEP = 30
 
 SESSIONS = [
     {"session_id": "ci00000000000001", "model": "claude-sonnet-5-20261101", "query_source": "main", "effort": "",

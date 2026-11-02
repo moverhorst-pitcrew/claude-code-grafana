@@ -58,8 +58,11 @@ class SampleTelemetryCoversTheDashboard(unittest.TestCase):
                 for m in sm["metrics"]:
                     if "sum" not in m:
                         continue
-                    stamps = {p["timeUnixNano"] for p in m["sum"]["dataPoints"]}
+                    stamps = {int(p["timeUnixNano"]) for p in m["sum"]["dataPoints"]}
                     self.assertEqual(len(stamps), 2, f"{m['name']} needs two samples for rate() to return anything")
+                    gap = (max(stamps) - min(stamps)) / 1e9
+                    self.assertLess(gap, 60, f"{m['name']}: both samples must fit in one $__rate_interval, and the "
+                                             "smallest one tools/validate_dashboard.py generates is 60 s (left-open)")
 
     def test_sends_one_trace_per_dashboard_span_name(self):
         used = set(re.findall(r'name\s*=\s*"(claude_code\.\w+)"', " ".join(dashboard_queries())))
