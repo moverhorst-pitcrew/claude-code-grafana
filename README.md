@@ -129,7 +129,7 @@ Green, orange and red always mean *fine*, *watch this* and *act*; everything els
 | Cost per request | mean cost per request now / over 7 days |
 | Tool failure rate | failure share now / over 7 days (lightly smoothed) |
 | Cache hit rate | hit share now / over 7 days (lower is worse) |
-| API errors, failed MCP servers, hook problems | counts; a healthy setup has none, so any occurrence is orange |
+| API errors, internal errors, failed MCP servers, hook problems | counts; a healthy setup has none, so any occurrence is orange |
 
 Ratios turn orange at 1.5x and red at 2.5x of usual (cache hits: orange below 0.9x, red below 0.75x). With less than 7 days of history the baseline is just the data you have, so tiles read about 1.00x until something changes. Adjust the steps in `tools/gen_dashboard.py` (`UP`, `DOWN`, `BASE`).
 

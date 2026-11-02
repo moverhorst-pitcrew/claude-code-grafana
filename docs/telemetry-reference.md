@@ -34,6 +34,7 @@ Selector: `{service_name="claude-code"} | event_name="<name>"`. Fields are struc
 |---|---|---|
 | `api_request` | `model`, `duration_ms`, `ttft_ms`, `cost_usd`, `input_tokens`, `output_tokens`, `cache_read_tokens`, `cache_creation_tokens`, `effort`, `query_source` | Latency, time to first token, cost per request, tokens per minute |
 | `api_error`, `api_retries_exhausted` | `status_code` | API errors (no events means no errors) |
+| `internal_error` | | Internal errors (Health; no events means none) |
 | `tool_result` | `tool_name`, `success`, `duration_ms`, `error_type`, `decision_source`, `mcp_server_scope` | Tool calls, failures, durations, permission wait |
 | `tool_decision` | `tool_name`, `decision`, `source`, `permission_mode` | Approved and blocked tools |
 | `mcp_server_connection` | `status`, `error_code`, `duration_ms`, `transport_type` | MCP server status and errors |
@@ -43,7 +44,7 @@ Selector: `{service_name="claude-code"} | event_name="<name>"`. Fields are struc
 | `plugin_loaded` | `plugin_name`, `plugin_scope` | Plugins |
 | `user_prompt` | `command_name`, `prompt_length`; the text fields are `<REDACTED>` | Prompts per hour, slash commands |
 | `assistant_response` | `response_length`; `response` is `<REDACTED>` | Event stream |
-| `internal_error`, `feedback_survey`, `at_mention`, `managed_settings_resolved`, `retention_sweep`, `hook_registered` | | Event stream only |
+| `feedback_survey`, `at_mention`, `managed_settings_resolved`, `retention_sweep`, `hook_registered` | | Event stream only |
 
 Prompt and response text are redacted by Claude Code unless `OTEL_LOG_USER_PROMPTS` is set, which this project never sets.
 
