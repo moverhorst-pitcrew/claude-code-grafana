@@ -29,7 +29,9 @@ Variables* (`ds_prometheus`, `ds_loki`, `ds_tempo`).
 ## A panel is empty or shows "none in this range"
 
 Usually that is true: nothing of that kind happened in the range (no API errors is good). If a panel should have data,
-start a **new** Claude Code session (settings are read at startup), widen the time range, and check
+run `python3 tools/doctor.py`: it checks Claude Code's settings, the OTLP ports, Prometheus, Loki, the usage poller and
+Grafana's datasources, and names the fix for every step that is not ok. If it reports all checks ok, start a **new**
+Claude Code session (settings are read at startup), widen the time range, and check
 [`telemetry-reference.md`](telemetry-reference.md) against what your Prometheus and Loki contain.
 
 ## The subscription limit tiles say "stale" or the poller reports `http-429`

@@ -23,6 +23,10 @@ the project uses [Semantic Versioning](https://semver.org/). Upgrade notes are i
   CI step also checks that the Quadlet's pinned `@sha256` digest still matches its tag.
 - "Internal errors" count tile in the Health row, next to API errors and failed MCP servers,
   from the `internal_error` event (documented but previously unplotted).
+- `tools/doctor.py`: one script to run when the dashboard is empty. It checks Claude Code's settings, the
+  collector's OTLP ports, Prometheus, Loki, the usage poller and Grafana's datasources, prints the likely fix
+  per step and exits non-zero on a real failure. A disabled usage poller warns instead of failing. The
+  `dashboard-smoke` CI job runs it against the live stack.
 
 ### Fixed
 - `tools/validate_dashboard.py` now exits non-zero when a query fails; it used to print `FAILED: N` but still exit 0.
