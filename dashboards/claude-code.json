@@ -3723,11 +3723,159 @@
     {
       "id": 52,
       "type": "bargauge",
+      "title": "Cost by skill",
+      "description": "Cost of the model turns that ran while a skill was active. Turns without a skill are left out.",
+      "gridPos": {
+        "x": 0,
+        "y": 67,
+        "w": 12,
+        "h": 7
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${ds_prometheus}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds_prometheus}"
+          },
+          "expr": "sort_desc(sum by (skill_name) (max_over_time(claude_code_cost_usage_USD_total{host_name=~\"$host\",skill_name!=\"\",model=~\"$model\"}[$__range])))",
+          "legendFormat": "{{skill_name}}",
+          "refId": "A",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
+          "noValue": "none in this range",
+          "min": 0,
+          "displayName": "${__field.labels.skill_name}",
+          "decimals": 4
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": true,
+        "valueMode": "color",
+        "namePlacement": "top",
+        "sizing": "manual",
+        "minVizHeight": 26,
+        "maxVizHeight": 34,
+        "minVizWidth": 8,
+        "text": {
+          "titleSize": 13,
+          "valueSize": 14
+        },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false,
+          "fields": ""
+        }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        }
+      ]
+    },
+    {
+      "id": 53,
+      "type": "bargauge",
+      "title": "Cost by terminal type",
+      "description": "An empty terminal_type is an interactive session; non-interactive is a headless run (claude -p, agents, CI).",
+      "gridPos": {
+        "x": 12,
+        "y": 67,
+        "w": 12,
+        "h": 7
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${ds_prometheus}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds_prometheus}"
+          },
+          "expr": "sort_desc(label_replace(sum by (terminal_type) (max_over_time(claude_code_cost_usage_USD_total{host_name=~\"$host\",model=~\"$model\"}[$__range])), \"terminal_type\", \"interactive\", \"terminal_type\", \"^$\"))",
+          "legendFormat": "{{terminal_type}}",
+          "refId": "A",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
+          "noValue": "none in this range",
+          "min": 0,
+          "displayName": "${__field.labels.terminal_type}",
+          "decimals": 4
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": true,
+        "valueMode": "color",
+        "namePlacement": "top",
+        "sizing": "manual",
+        "minVizHeight": 26,
+        "maxVizHeight": 34,
+        "minVizWidth": 8,
+        "text": {
+          "titleSize": 13,
+          "valueSize": 14
+        },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false,
+          "fields": ""
+        }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "/claude-([a-z]+(?:-\\d+)*?)(?:-\\d{8})?(?=\\s|$|,|\\))/g",
+            "renamePattern": "$1"
+          }
+        }
+      ]
+    },
+    {
+      "id": 54,
+      "type": "bargauge",
       "title": "Cost by host",
       "description": "Cost per machine. Needs OTEL_RESOURCE_ATTRIBUTES=host.name=<name> on each Claude Code install (claude-settings/apply-claude-settings.py sets it); data from before that shows as one unnamed host.",
       "gridPos": {
         "x": 0,
-        "y": 67,
+        "y": 74,
         "w": 12,
         "h": 7
       },
@@ -3795,13 +3943,13 @@
       ]
     },
     {
-      "id": 53,
+      "id": 55,
       "type": "bargauge",
       "title": "Requests by host",
       "description": "API requests per machine in the selected range.",
       "gridPos": {
         "x": 12,
-        "y": 67,
+        "y": 74,
         "w": 12,
         "h": 7
       },
@@ -3867,26 +4015,26 @@
       ]
     },
     {
-      "id": 54,
+      "id": 56,
       "type": "row",
       "title": "Productivity",
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 74,
+        "y": 81,
         "w": 24,
         "h": 1
       },
       "panels": []
     },
     {
-      "id": 55,
+      "id": 57,
       "type": "bargauge",
       "title": "Lines added vs removed",
       "description": "Lines changed by Claude's edits in the selected range.",
       "gridPos": {
         "x": 0,
-        "y": 75,
+        "y": 82,
         "w": 6,
         "h": 7
       },
@@ -3953,13 +4101,13 @@
       ]
     },
     {
-      "id": 56,
+      "id": 58,
       "type": "bargauge",
       "title": "Edit decisions",
       "description": "Permission decisions for Edit, Write and NotebookEdit.",
       "gridPos": {
         "x": 6,
-        "y": 75,
+        "y": 82,
         "w": 6,
         "h": 7
       },
@@ -4026,13 +4174,13 @@
       ]
     },
     {
-      "id": 57,
+      "id": 59,
       "type": "bargauge",
       "title": "Edits by language",
       "description": "",
       "gridPos": {
         "x": 12,
-        "y": 75,
+        "y": 82,
         "w": 6,
         "h": 7
       },
@@ -4099,13 +4247,13 @@
       ]
     },
     {
-      "id": 58,
+      "id": 60,
       "type": "stat",
       "title": "Edit accept rate",
       "description": "Share of edit permission prompts accepted.",
       "gridPos": {
         "x": 18,
-        "y": 75,
+        "y": 82,
         "w": 6,
         "h": 7
       },
@@ -4170,13 +4318,13 @@
       }
     },
     {
-      "id": 59,
+      "id": 61,
       "type": "timeseries",
       "title": "Prompts per hour",
       "description": "How often you prompt (user_prompt events). Shown as a rate per hour, so the scale is the same at every time range.",
       "gridPos": {
         "x": 0,
-        "y": 82,
+        "y": 89,
         "w": 8,
         "h": 8
       },
@@ -4242,13 +4390,13 @@
       ]
     },
     {
-      "id": 60,
+      "id": 62,
       "type": "timeseries",
       "title": "Activity share by type",
       "description": "Share of time spent active, summed over sessions (above 100% means several sessions at once). user = you typing/reading; cli = Claude working.",
       "gridPos": {
         "x": 8,
-        "y": 82,
+        "y": 89,
         "w": 8,
         "h": 8
       },
@@ -4329,13 +4477,13 @@
       ]
     },
     {
-      "id": 61,
+      "id": 63,
       "type": "timeseries",
       "title": "Sessions started per hour",
       "description": "Sessions that began in each interval (fresh / continue / resume). Shown as a rate per hour, so the scale is the same at every time range.",
       "gridPos": {
         "x": 16,
-        "y": 82,
+        "y": 89,
         "w": 8,
         "h": 8
       },
@@ -4402,26 +4550,26 @@
       ]
     },
     {
-      "id": 62,
+      "id": 64,
       "type": "row",
       "title": "API performance (from api_request logs)",
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 90,
+        "y": 97,
         "w": 24,
         "h": 1
       },
       "panels": []
     },
     {
-      "id": 63,
+      "id": 65,
       "type": "timeseries",
       "title": "API latency p50 / p95",
       "description": "Dashed lines: your own p95 over the last 7 days, and 1.5x that (where the Health tile turns orange).",
       "gridPos": {
         "x": 0,
-        "y": 91,
+        "y": 98,
         "w": 8,
         "h": 8
       },
@@ -4778,13 +4926,13 @@
       ]
     },
     {
-      "id": 64,
+      "id": 66,
       "type": "timeseries",
       "title": "Time to first token p50 / p95",
       "description": "Dashed lines: your own p95 over the last 7 days, and 1.5x that (where the Health tile turns orange).",
       "gridPos": {
         "x": 8,
-        "y": 91,
+        "y": 98,
         "w": 8,
         "h": 8
       },
@@ -5141,13 +5289,13 @@
       ]
     },
     {
-      "id": 65,
+      "id": 67,
       "type": "timeseries",
       "title": "API requests per minute",
       "description": "Shown as a rate per min, so the scale is the same at every time range.",
       "gridPos": {
         "x": 16,
-        "y": 91,
+        "y": 98,
         "w": 8,
         "h": 8
       },
@@ -5289,13 +5437,13 @@
       ]
     },
     {
-      "id": 66,
+      "id": 68,
       "type": "timeseries",
       "title": "Output tokens per request (avg)",
       "description": "",
       "gridPos": {
         "x": 0,
-        "y": 99,
+        "y": 106,
         "w": 5,
         "h": 8
       },
@@ -5436,13 +5584,13 @@
       ]
     },
     {
-      "id": 67,
+      "id": 69,
       "type": "timeseries",
       "title": "Cache read / request (avg)",
       "description": "",
       "gridPos": {
         "x": 5,
-        "y": 99,
+        "y": 106,
         "w": 5,
         "h": 8
       },
@@ -5583,13 +5731,13 @@
       ]
     },
     {
-      "id": 68,
+      "id": 70,
       "type": "table",
       "title": "Requests by effort and speed",
       "description": "Reasoning effort and speed setting (e.g. fast mode) per request.",
       "gridPos": {
         "x": 10,
-        "y": 99,
+        "y": 106,
         "w": 8,
         "h": 8
       },
@@ -5691,13 +5839,13 @@
       ]
     },
     {
-      "id": 69,
+      "id": 71,
       "type": "timeseries",
       "title": "API errors per hour",
       "description": "api_error / api_retries_exhausted events. Empty while the API is healthy (verified: a bad model name produces an HTTP 404 here). Shown as a rate per hour, so the scale is the same at every time range.",
       "gridPos": {
         "x": 18,
-        "y": 99,
+        "y": 106,
         "w": 6,
         "h": 8
       },
@@ -5849,26 +5997,26 @@
       ]
     },
     {
-      "id": 70,
+      "id": 72,
       "type": "row",
       "title": "Tools, permissions and skills",
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 107,
+        "y": 114,
         "w": 24,
         "h": 1
       },
       "panels": []
     },
     {
-      "id": 71,
+      "id": 73,
       "type": "timeseries",
       "title": "Tool calls per minute",
       "description": "Shown as a rate per min, so the scale is the same at every time range.",
       "gridPos": {
         "x": 0,
-        "y": 108,
+        "y": 115,
         "w": 8,
         "h": 8
       },
@@ -5934,13 +6082,13 @@
       ]
     },
     {
-      "id": 72,
+      "id": 74,
       "type": "timeseries",
       "title": "Tool duration p95 by tool",
       "description": "",
       "gridPos": {
         "x": 8,
-        "y": 108,
+        "y": 115,
         "w": 8,
         "h": 8
       },
@@ -6006,13 +6154,13 @@
       ]
     },
     {
-      "id": 73,
+      "id": 75,
       "type": "timeseries",
       "title": "Tool failures per hour",
       "description": "tool_result events with success=false. Shown as a rate per hour, so the scale is the same at every time range.",
       "gridPos": {
         "x": 16,
-        "y": 108,
+        "y": 115,
         "w": 8,
         "h": 8
       },
@@ -6078,13 +6226,13 @@
       ]
     },
     {
-      "id": 74,
+      "id": 76,
       "type": "timeseries",
       "title": "Permission decisions per minute",
       "description": "accept/reject and who decided (config, user, hook ...). Shown as a rate per min, so the scale is the same at every time range.",
       "gridPos": {
         "x": 0,
-        "y": 116,
+        "y": 123,
         "w": 8,
         "h": 8
       },
@@ -6171,13 +6319,13 @@
       ]
     },
     {
-      "id": 75,
+      "id": 77,
       "type": "table",
       "title": "Permission mode and auto-mode verdicts",
       "description": "Permission mode in force and the auto-mode classifier's verdict per tool call.",
       "gridPos": {
         "x": 8,
-        "y": 116,
+        "y": 123,
         "w": 8,
         "h": 8
       },
@@ -6318,13 +6466,13 @@
       ]
     },
     {
-      "id": 76,
+      "id": 78,
       "type": "timeseries",
       "title": "Tool result size p95 by tool",
       "description": "Large results fill the context window; watch for tools that return a lot.",
       "gridPos": {
         "x": 16,
-        "y": 116,
+        "y": 123,
         "w": 8,
         "h": 8
       },
@@ -6390,13 +6538,13 @@
       ]
     },
     {
-      "id": 77,
+      "id": 79,
       "type": "table",
       "title": "MCP server connections",
       "description": "mcp_server_connection events in the range. 'failed' means a configured server did not start; the error code says why (e.g. an HTTP status).",
       "gridPos": {
         "x": 0,
-        "y": 124,
+        "y": 131,
         "w": 10,
         "h": 8
       },
@@ -6506,13 +6654,13 @@
       ]
     },
     {
-      "id": 78,
+      "id": 80,
       "type": "table",
       "title": "Skills activated",
       "description": "Skills loaded, and whether you or Claude triggered them.",
       "gridPos": {
         "x": 10,
-        "y": 124,
+        "y": 131,
         "w": 8,
         "h": 8
       },
@@ -6614,13 +6762,13 @@
       ]
     },
     {
-      "id": 79,
+      "id": 81,
       "type": "table",
       "title": "Slash commands used",
       "description": "Slash commands typed as prompts (/clear, /usage, custom commands ...).",
       "gridPos": {
         "x": 18,
-        "y": 124,
+        "y": 131,
         "w": 6,
         "h": 8
       },
@@ -6720,26 +6868,26 @@
       ]
     },
     {
-      "id": 80,
+      "id": 82,
       "type": "row",
       "title": "Subagents",
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 132,
+        "y": 139,
         "w": 24,
         "h": 1
       },
       "panels": []
     },
     {
-      "id": 81,
+      "id": 83,
       "type": "table",
       "title": "Subagent runs by type",
       "description": "subagent_completed events: which subagents ran, and on which model.",
       "gridPos": {
         "x": 0,
-        "y": 133,
+        "y": 140,
         "w": 8,
         "h": 7
       },
@@ -6863,13 +7011,13 @@
       ]
     },
     {
-      "id": 82,
+      "id": 84,
       "type": "timeseries",
       "title": "Subagent duration (avg)",
       "description": "Wall-clock time per subagent run.",
       "gridPos": {
         "x": 8,
-        "y": 133,
+        "y": 140,
         "w": 8,
         "h": 7
       },
@@ -6935,13 +7083,13 @@
       ]
     },
     {
-      "id": 83,
+      "id": 85,
       "type": "timeseries",
       "title": "Subagent tokens per run (avg)",
       "description": "Total tokens a subagent used (counted separately from the main conversation).",
       "gridPos": {
         "x": 16,
-        "y": 133,
+        "y": 140,
         "w": 8,
         "h": 7
       },
@@ -7006,26 +7154,26 @@
       ]
     },
     {
-      "id": 84,
+      "id": 86,
       "type": "row",
       "title": "Hooks and context compaction",
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 140,
+        "y": 147,
         "w": 24,
         "h": 1
       },
       "panels": []
     },
     {
-      "id": 85,
+      "id": 87,
       "type": "stat",
       "title": "Hook runs",
       "description": "Hook executions in the range (one per hook event, covering all hooks that matched it).",
       "gridPos": {
         "x": 0,
-        "y": 141,
+        "y": 148,
         "w": 4,
         "h": 4
       },
@@ -7072,13 +7220,13 @@
       }
     },
     {
-      "id": 86,
+      "id": 88,
       "type": "stat",
       "title": "Hook problems",
       "description": "Hook runs that blocked an action or errored (num_blocking + num_non_blocking_error). Zero is healthy; a hook that blocks on purpose will show up here too.",
       "gridPos": {
         "x": 0,
-        "y": 145,
+        "y": 152,
         "w": 4,
         "h": 4
       },
@@ -7137,13 +7285,13 @@
       }
     },
     {
-      "id": 87,
+      "id": 89,
       "type": "timeseries",
       "title": "Hook runs per minute",
       "description": "PreToolUse / PostToolUse / SessionStart / UserPromptSubmit ... hook executions. Shown as a rate per min, so the scale is the same at every time range.",
       "gridPos": {
         "x": 4,
-        "y": 141,
+        "y": 148,
         "w": 8,
         "h": 8
       },
@@ -7209,13 +7357,13 @@
       ]
     },
     {
-      "id": 88,
+      "id": 90,
       "type": "timeseries",
       "title": "Hook duration p95 by hook",
       "description": "Total time a hook event took. Hooks run in the critical path: a slow one delays every tool call or prompt it is attached to.",
       "gridPos": {
         "x": 12,
-        "y": 141,
+        "y": 148,
         "w": 6,
         "h": 8
       },
@@ -7281,13 +7429,13 @@
       ]
     },
     {
-      "id": 89,
+      "id": 91,
       "type": "table",
       "title": "Hooks by event",
       "description": "Hook executions per hook event and matcher in the range.",
       "gridPos": {
         "x": 18,
-        "y": 141,
+        "y": 148,
         "w": 6,
         "h": 8
       },
@@ -7387,13 +7535,13 @@
       ]
     },
     {
-      "id": 90,
+      "id": 92,
       "type": "stat",
       "title": "Compactions",
       "description": "Times the conversation was compacted to free context (automatically when it filled up, or by /compact).",
       "gridPos": {
         "x": 0,
-        "y": 149,
+        "y": 156,
         "w": 4,
         "h": 4
       },
@@ -7440,13 +7588,13 @@
       }
     },
     {
-      "id": 91,
+      "id": 93,
       "type": "stat",
       "title": "Context freed",
       "description": "Share of the context removed by compactions in the range.",
       "gridPos": {
         "x": 0,
-        "y": 153,
+        "y": 160,
         "w": 4,
         "h": 4
       },
@@ -7494,13 +7642,13 @@
       }
     },
     {
-      "id": 92,
+      "id": 94,
       "type": "timeseries",
       "title": "Context size before and after compaction",
       "description": "Tokens in context when a compaction ran, and what was left afterwards.",
       "gridPos": {
         "x": 4,
-        "y": 149,
+        "y": 156,
         "w": 7,
         "h": 8
       },
@@ -7575,13 +7723,13 @@
       ]
     },
     {
-      "id": 93,
+      "id": 95,
       "type": "timeseries",
       "title": "Compaction duration",
       "description": "How long a compaction took. Claude is busy summarising during this time.",
       "gridPos": {
         "x": 11,
-        "y": 149,
+        "y": 156,
         "w": 5,
         "h": 8
       },
@@ -7647,13 +7795,13 @@
       ]
     },
     {
-      "id": 94,
+      "id": 96,
       "type": "table",
       "title": "Compactions by trigger",
       "description": "auto = the context window filled up; manual = /compact. OK=false means the compaction failed.",
       "gridPos": {
         "x": 16,
-        "y": 149,
+        "y": 156,
         "w": 8,
         "h": 8
       },
@@ -7794,26 +7942,26 @@
       ]
     },
     {
-      "id": 95,
+      "id": 97,
       "type": "row",
       "title": "Traces (span metrics + Tempo)",
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 157,
+        "y": 164,
         "w": 24,
         "h": 1
       },
       "panels": []
     },
     {
-      "id": 96,
+      "id": 98,
       "type": "timeseries",
       "title": "Span rate by type",
       "description": "interaction = one prompt; llm_request = one API call; tool / tool.execution / tool.blocked_on_user. The binary also defines mcp.rpc, hook, subagent.spawn, compaction and bash.subprocess spans, but they were not exported in testing; they would show up here if emitted.",
       "gridPos": {
         "x": 0,
-        "y": 158,
+        "y": 165,
         "w": 8,
         "h": 8
       },
@@ -7901,13 +8049,13 @@
       ]
     },
     {
-      "id": 97,
+      "id": 99,
       "type": "timeseries",
       "title": "Span p95 latency by type",
       "description": "",
       "gridPos": {
         "x": 8,
-        "y": 158,
+        "y": 165,
         "w": 8,
         "h": 8
       },
@@ -7995,13 +8143,13 @@
       ]
     },
     {
-      "id": 98,
+      "id": 100,
       "type": "timeseries",
       "title": "Span errors per hour",
       "description": "Error spans per interval; empty is good. Shown as a rate per hour, so the scale is the same at every time range.",
       "gridPos": {
         "x": 16,
-        "y": 158,
+        "y": 165,
         "w": 8,
         "h": 8
       },
@@ -8089,13 +8237,13 @@
       ]
     },
     {
-      "id": 99,
+      "id": 101,
       "type": "table",
       "title": "Recent interactions (click a trace ID to open the waterfall)",
       "description": "",
       "gridPos": {
         "x": 0,
-        "y": 166,
+        "y": 173,
         "w": 24,
         "h": 8
       },
@@ -8156,13 +8304,13 @@
       ]
     },
     {
-      "id": 100,
+      "id": 102,
       "type": "table",
       "title": "Slow LLM requests (over 3 s, slowest first)",
       "description": "",
       "gridPos": {
         "x": 0,
-        "y": 174,
+        "y": 181,
         "w": 24,
         "h": 7
       },
@@ -8278,13 +8426,13 @@
       ]
     },
     {
-      "id": 101,
+      "id": 103,
       "type": "table",
       "title": "Slow tool calls (over 1 s, slowest first)",
       "description": "Whole tool call, including any time spent waiting for a permission answer.",
       "gridPos": {
         "x": 0,
-        "y": 181,
+        "y": 188,
         "w": 24,
         "h": 7
       },
@@ -8398,26 +8546,26 @@
       ]
     },
     {
-      "id": 102,
+      "id": 104,
       "type": "row",
       "title": "Events, plugins and logs",
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 189,
+        "y": 196,
         "w": 24,
         "h": 1
       },
       "panels": []
     },
     {
-      "id": 103,
+      "id": 105,
       "type": "timeseries",
       "title": "Events per minute by type",
       "description": "plugin_loaded is excluded; it fires many times at every startup. Shown as a rate per min, so the scale is the same at every time range.",
       "gridPos": {
         "x": 0,
-        "y": 190,
+        "y": 197,
         "w": 12,
         "h": 8
       },
@@ -8490,13 +8638,13 @@
       ]
     },
     {
-      "id": 104,
+      "id": 106,
       "type": "table",
       "title": "Plugins loaded",
       "description": "Plugins Claude Code loaded in the range (one load per session start).",
       "gridPos": {
         "x": 12,
-        "y": 190,
+        "y": 197,
         "w": 12,
         "h": 8
       },
@@ -8604,13 +8752,13 @@
       ]
     },
     {
-      "id": 105,
+      "id": 107,
       "type": "logs",
       "title": "Event stream (prompt text is redacted by default)",
       "description": "",
       "gridPos": {
         "x": 0,
-        "y": 198,
+        "y": 205,
         "w": 24,
         "h": 12
       },

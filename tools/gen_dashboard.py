@@ -472,6 +472,15 @@ panels += [
 ]
 y += 8
 panels += [
+    bargauge("Cost by skill", f'sort_desc(sum by (skill_name) (max_over_time({COST}{{skill_name!="",model=~"$model"}}[{RNG}])))', "currencyUSD", 0, y, w=12, h=7,
+             legend="{{skill_name}}", desc="Cost of the model turns that ran while a skill was active. Turns without a skill are left out."),
+    bargauge("Cost by terminal type",
+             f'sort_desc(label_replace(sum by (terminal_type) (max_over_time({COST}{M}[{RNG}])), "terminal_type", "interactive", "terminal_type", "^$"))',
+             "currencyUSD", 12, y, w=12, h=7, legend="{{terminal_type}}",
+             desc="An empty terminal_type is an interactive session; non-interactive is a headless run (claude -p, agents, CI)."),
+]
+y += 7
+panels += [
     bargauge("Cost by host", f"sort_desc(sum by (host_name) (max_over_time({COST}{M}[{RNG}])))", "currencyUSD", 0, y, w=12, h=7,
              legend="{{host_name}}", desc="Cost per machine. Needs OTEL_RESOURCE_ATTRIBUTES=host.name=<name> on each Claude Code install "
              "(claude-settings/apply-claude-settings.py sets it); data from before that shows as one unnamed host."),
