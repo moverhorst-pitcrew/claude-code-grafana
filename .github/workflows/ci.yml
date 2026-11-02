@@ -80,12 +80,15 @@ jobs:
         run: python3 tools/send_sample_telemetry.py
       - name: Wait until the telemetry is queryable
         run: python3 tools/wait_for_telemetry.py
+      - name: Validate the dashboard
+        run: python3 tools/validate_dashboard.py --range 3h --require-data
+      # After the validator, so a bug in the diagnostics cannot skip the job's primary gate, and always() so
+      # its six lines are also printed when the validator is the step that failed, which is when you want them.
       - name: Diagnose the stack
+        if: always()
         run: |
           CLAUDE_CONFIG_DIR=/tmp/claude-doctor python3 claude-settings/apply-claude-settings.py
           CLAUDE_CONFIG_DIR=/tmp/claude-doctor python3 tools/doctor.py
-      - name: Validate the dashboard
-        run: python3 tools/validate_dashboard.py --range 3h --require-data
       - name: Stack logs
         if: failure()
         run: docker compose logs
