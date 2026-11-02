@@ -21,9 +21,14 @@ the project uses [Semantic Versioning](https://semver.org/). Upgrade notes are i
 - `tests/test_versions.py`: fails CI when the `grafana/otel-lgtm` version drifts between
   `docker-compose.yml`, the Quadlet unit and the README Compatibility line. A `dashboard-smoke`
   CI step also checks that the Quadlet's pinned `@sha256` digest still matches its tag.
+- "Internal errors" count tile in the Health row, next to API errors and failed MCP servers,
+  from the `internal_error` event (documented but previously unplotted).
 
 ### Fixed
 - `tools/validate_dashboard.py` now exits non-zero when a query fails; it used to print `FAILED: N` but still exit 0.
+- Credits used no longer hardcodes a euro sign: it sums per currency as reported by the account
+  and shows the currency as the tile's name (an account that reports no currency renders as
+  "unknown").
 
 ## [1.1.0] - 2026-10-30
 
