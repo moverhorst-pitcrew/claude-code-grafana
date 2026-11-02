@@ -57,6 +57,8 @@ class GeneratedDashboard(unittest.TestCase):
         p = next(p for p in self.d["panels"] if p["title"] == "Credits used")
         unit = p["fieldConfig"]["defaults"]["unit"]
         self.assertFalse(unit.startswith("currency"), f"unit {unit!r} hardcodes a currency; the account's currency is a label, not fixed")
+        self.assertIn('"currency", "unknown", "currency", "^$"', p["targets"][0]["expr"],
+                      "an account reporting no currency must still render, as unknown")
 
     def test_committed_dashboard_matches_the_generator(self):
         out = subprocess.run([sys.executable, "-I", os.path.join(ROOT, "tools", "gen_dashboard.py")],
