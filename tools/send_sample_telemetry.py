@@ -139,6 +139,7 @@ def all_logs():
                                total_tokens=3000, session_id=s["session_id"]))
     out.append(log_record("api_error", NOW, status_code="529", model=SESSIONS[0]["model"]))
     out.append(log_record("api_retries_exhausted", NOW, model=SESSIONS[0]["model"]))
+    out.append(log_record("internal_error", NOW))
     out.append(log_record("mcp_server_connection", NOW, status="connected", error_code="", duration_ms=120, transport_type="stdio"))
     out.append(log_record("mcp_server_connection", NOW, status="failed", error_code="ENOENT", duration_ms=50, transport_type="stdio"))
     out.append(log_record("hook_execution_complete", NOW, hook_event="PreToolUse", hook_name="format-on-save",
