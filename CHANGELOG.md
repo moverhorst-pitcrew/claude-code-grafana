@@ -41,7 +41,6 @@ the project uses [Semantic Versioning](https://semver.org/). Upgrade notes are i
 - `grafana/otel-lgtm` is pinned to 0.39.0 (Grafana 13.3) instead of `latest`.
 - The compose poller runs on `python:3.15-alpine`; CI tests on Python 3.11 and 3.15 and uses `actions/checkout` and `actions/setup-python` v7.
 
-
 ### Fixed
 - The usage poller backs off 2, 4, 8, then 10 minutes after a rate limit, as documented (it started at 1 minute), and
   closes its state file handles.
