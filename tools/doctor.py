@@ -113,8 +113,11 @@ def check_ports():
 
 def check_metrics(uid):
     # count() so a Prometheus with thousands of claude_code_* series answers with one number instead of all of them.
+    # last_over_time and not count_over_time: it is the one *_over_time function that keeps __name__ on its output.
+    # Without the name, every claude_code_* series of one install (same job, instance, service_name, host_name)
+    # collapses onto the same labelset and Prometheus rejects the whole query before count() ever sees it.
     try:
-        r = promql(uid, 'count(count_over_time({__name__=~"claude_code_.*"}[1h]))')
+        r = promql(uid, 'count(last_over_time({__name__=~"claude_code_.*"}[1h]))')
         n = int(float(r[0]["value"][1])) if r else 0
     except Exception as e:
         return query_failed(e, FIX_METRICS)
