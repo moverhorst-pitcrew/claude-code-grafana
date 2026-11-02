@@ -10,6 +10,9 @@ the project uses [Semantic Versioning](https://semver.org/). Upgrade notes are i
   `tools/validate_dashboard.py` against the result, so a query that errors against a live Grafana fails CI.
 - `examples/alerting/`: Grafana alert rule examples for weekly usage above 80%, 5-hour usage
   above 90%, a stale usage poller, and daily cost per host above a threshold.
+- `tools/validate_dashboard.py --require-data`: a query that succeeds but returns no rows counts as a failure,
+  checked per target, so a renamed or dropped metric fails CI instead of leaving a panel empty. The CI smoke job
+  uses it; panels that are empty on the sample telemetry are listed in the script's `ALLOW_EMPTY` constant.
 
 ### Fixed
 - `tools/validate_dashboard.py` now exits non-zero when a query fails; it used to print `FAILED: N` but still exit 0.
