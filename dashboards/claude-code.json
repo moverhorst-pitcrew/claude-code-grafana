@@ -1416,7 +1416,7 @@
       "id": 20,
       "type": "stat",
       "title": "Credits used",
-      "description": "Usage credits spent beyond your plan limits (currency as reported by your account).",
+      "description": "Usage credits spent beyond your plan limits, per currency as reported by your account.",
       "gridPos": {
         "x": 6,
         "y": 22,
@@ -1433,7 +1433,7 @@
             "type": "prometheus",
             "uid": "${ds_prometheus}"
           },
-          "expr": "sum(last_over_time(claude_usage_credits_used[15m]))",
+          "expr": "label_replace(sum by (currency) (last_over_time(claude_usage_credits_used[15m])), \"currency\", \"unknown\", \"currency\", \"^$\")",
           "legendFormat": "",
           "refId": "A",
           "instant": true,
@@ -1442,14 +1442,15 @@
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "currencyEUR",
+          "unit": "none",
           "color": {
             "mode": "fixed",
             "fixedColor": "text"
           },
           "noValue": "no data",
           "mappings": [],
-          "decimals": 2
+          "decimals": 2,
+          "displayName": "${__field.labels.currency}"
         },
         "overrides": []
       },
@@ -1463,7 +1464,7 @@
         },
         "colorMode": "value",
         "graphMode": "none",
-        "textMode": "value",
+        "textMode": "value_and_name",
         "justifyMode": "center"
       }
     },

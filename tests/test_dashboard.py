@@ -53,6 +53,11 @@ class GeneratedDashboard(unittest.TestCase):
         ids = [p["id"] for p in self.d["panels"]]
         self.assertEqual(len(ids), len(set(ids)))
 
+    def test_credits_used_has_no_fixed_currency_unit(self):
+        p = next(p for p in self.d["panels"] if p["title"] == "Credits used")
+        unit = p["fieldConfig"]["defaults"]["unit"]
+        self.assertFalse(unit.startswith("currency"), f"unit {unit!r} hardcodes a currency; the account's currency is a label, not fixed")
+
     def test_committed_dashboard_matches_the_generator(self):
         out = subprocess.run([sys.executable, "-I", os.path.join(ROOT, "tools", "gen_dashboard.py")],
                              check=True, capture_output=True, text=True).stdout

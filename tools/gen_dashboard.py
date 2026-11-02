@@ -100,7 +100,7 @@ def base(kind, title, x, y, w, h, ds, tg, desc=""):
             "gridPos": {"x": x, "y": y, "w": w, "h": h}, "datasource": ds, "targets": tg}
 
 
-def stat(title, expr, unit, x, y, w=4, h=4, ds=PROM, desc="", color="blue", decimals=None, steps=None, bg=False, nv="0", mappings=None):
+def stat(title, expr, unit, x, y, w=4, h=4, ds=PROM, desc="", color="blue", decimals=None, steps=None, bg=False, nv="0", mappings=None, legend=""):
     """Plain numbers are neutral (colour arg kept for call sites); only `steps` adds a good/bad colour."""
     p = base("stat", title, x, y, w, h, ds, targets(ds, [expr], instant=True), desc)
     unit, decimals = norm(unit, decimals)
@@ -110,9 +110,12 @@ def stat(title, expr, unit, x, y, w=4, h=4, ds=PROM, desc="", color="blue", deci
     if steps:
         d["color"] = {"mode": "thresholds"}
         d["thresholds"] = {"mode": "absolute", "steps": steps}
+    if legend:   # name from label values; a single series otherwise loses its name
+        d["displayName"] = legend.replace("{{", "${__field.labels.").replace("}}", "}")
     p["fieldConfig"] = {"defaults": d, "overrides": []}
     p["options"] = {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": False},
-                    "colorMode": "background" if bg else "value", "graphMode": "none", "textMode": "value", "justifyMode": "center"}
+                    "colorMode": "background" if bg else "value", "graphMode": "none",
+                    "textMode": "value_and_name" if legend else "value", "justifyMode": "center"}
     return p
 
 
@@ -382,8 +385,10 @@ ONOFF = [{"type": "value", "options": {"1": {"text": "On", "index": 0}, "0": {"t
 panels += [
     table("Plan", PROM, f"max by (plan, tier) ({lo('claude_usage_plan_info')})", 0, y, 6, 4, order=["plan", "tier"], hide=["Time", "Value"],
           rename={"plan": "Plan", "tier": "Rate-limit tier"}),
-    stat("Credits used", f"sum({lo('claude_usage_credits_used')})", "currencyEUR", 6, y, 4, 4, nv="no data",
-         desc="Usage credits spent beyond your plan limits (currency as reported by your account)."),
+    stat("Credits used",
+         f'label_replace(sum by (currency) ({lo("claude_usage_credits_used")}), "currency", "unknown", "currency", "^$")',
+         "none", 6, y, 4, 4, nv="no data", legend="{{currency}}",
+         desc="Usage credits spent beyond your plan limits, per currency as reported by your account."),
     stat("Credits", f"max({lo('claude_usage_credits_enabled')})", "none", 10, y, 3, 4, nv="no data", mappings=ONOFF,
          desc="Whether usage credits are switched on. When off, hitting a limit stops requests."),
     stat("Unnamed allowance", f"sum({lo('claude_usage_allowance_used')})", "prefix:$", 13, y, 4, 4, nv="n/a",
