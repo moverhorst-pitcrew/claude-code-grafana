@@ -4043,8 +4043,7 @@
             "fixedColor": "blue"
           },
           "noValue": "none in this range",
-          "min": 0,
-          "displayName": "${__field.labels.host_name}"
+          "min": 0
         },
         "overrides": []
       },
@@ -4063,11 +4062,9 @@
           "valueSize": 14
         },
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "values": false,
-          "fields": ""
+          "calcs": [],
+          "values": true,
+          "fields": "/^Value/"
         }
       },
       "transformations": [
