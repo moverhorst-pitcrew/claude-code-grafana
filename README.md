@@ -200,6 +200,8 @@ Data lives in `~/.local/share/otel-lgtm` (`docker compose down -v` for the compo
 
 ## Troubleshooting
 
+Run `python3 tools/doctor.py` first. It checks the whole chain (Claude Code's settings, the collector's OTLP ports, Prometheus, Loki, the usage poller and Grafana's datasources) and names the fix for every step that is not ok, which usually points straight at the row below.
+
 | Symptom | Cause and fix |
 |---|---|
 | Dashboard is empty | Claude Code reads its settings at startup. Start a **new** session after `--claude-settings`. |
@@ -226,6 +228,7 @@ Data lives in `~/.local/share/otel-lgtm` (`docker compose down -v` for the compo
 | `docker-compose.yml` | The Docker alternative, with the usage poller as an opt-in profile |
 | `dashboards/claude-code.json` | The generated dashboard |
 | `tools/gen_dashboard.py` | **Source of truth** for the dashboard |
+| `tools/doctor.py` | Checks the whole chain when the dashboard is empty, and names the fix per step |
 | `tools/validate_dashboard.py` | Runs every dashboard query at a chosen range (`--require-data` also fails on no rows) |
 | `tools/send_sample_telemetry.py` | Pushes sample OTLP metrics, logs and traces for CI to validate the dashboard against |
 | `tools/wait_for_telemetry.py` | Waits until that sample telemetry can be queried, before CI validates |
