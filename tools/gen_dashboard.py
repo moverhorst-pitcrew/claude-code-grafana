@@ -254,6 +254,12 @@ def lq(fn, name, rng="$__auto", unwrap=None, by=None, q=None, extra=""):
     return f"{e} by ({by})" if (by and unwrap) else (f"sum by ({by}) ({e})" if by else f"sum({e})")
 
 
+def unnamed_host(expr):
+    """Give data without a host_name label a name. The bar gauge's display name is the host_name label, and a series
+    that has none cannot resolve it: Grafana then shows the raw field name, "Value #A"."""
+    return f'label_replace({expr}, "host_name", "unnamed", "host_name", "^$")'
+
+
 def cnt(name, by, extra="", rng=RNG):
     """Loki range count grouped by labels, as an instant vector (for bar gauges / tables)."""
     return f"sum by ({by}) (count_over_time({ev(name, extra)} [{rng}]))"
@@ -489,10 +495,10 @@ panels += [
 ]
 y += 7
 panels += [
-    bargauge("Cost by host", f"sort_desc(sum by (host_name) (max_over_time({COST}{M}[{RNG}])))", "currencyUSD", 0, y, w=12, h=7,
+    bargauge("Cost by host", f"sort_desc({unnamed_host(f'sum by (host_name) (max_over_time({COST}{M}[{RNG}]))')})", "currencyUSD", 0, y, w=12, h=7,
              legend="{{host_name}}", desc="Cost per machine. Needs OTEL_RESOURCE_ATTRIBUTES=host.name=<name> on each Claude Code install "
-             "(claude-settings/apply-claude-settings.py sets it); data from before that shows as one unnamed host."),
-    bargauge("Requests by host", cnt("api_request", "host_name"), "short", 12, y, w=12, h=7, ds=LOKI,
+             "(claude-settings/apply-claude-settings.py sets it); data from before that shows as the host \"unnamed\"."),
+    bargauge("Requests by host", unnamed_host(cnt("api_request", "host_name")), "short", 12, y, w=12, h=7, ds=LOKI,
              legend="{{host_name}}", desc="API requests per machine in the selected range."),
 ]
 y += 7

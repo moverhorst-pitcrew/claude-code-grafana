@@ -3938,7 +3938,7 @@
       "id": 55,
       "type": "bargauge",
       "title": "Cost by host",
-      "description": "Cost per machine. Needs OTEL_RESOURCE_ATTRIBUTES=host.name=<name> on each Claude Code install (claude-settings/apply-claude-settings.py sets it); data from before that shows as one unnamed host.",
+      "description": "Cost per machine. Needs OTEL_RESOURCE_ATTRIBUTES=host.name=<name> on each Claude Code install (claude-settings/apply-claude-settings.py sets it); data from before that shows as the host \"unnamed\".",
       "gridPos": {
         "x": 0,
         "y": 74,
@@ -3955,7 +3955,7 @@
             "type": "prometheus",
             "uid": "${ds_prometheus}"
           },
-          "expr": "sort_desc(sum by (host_name) (max_over_time(claude_code_cost_usage_USD_total{host_name=~\"$host\",model=~\"$model\"}[$__range])))",
+          "expr": "sort_desc(label_replace(sum by (host_name) (max_over_time(claude_code_cost_usage_USD_total{host_name=~\"$host\",model=~\"$model\"}[$__range])), \"host_name\", \"unnamed\", \"host_name\", \"^$\"))",
           "legendFormat": "{{host_name}}",
           "refId": "A",
           "instant": true,
@@ -4029,7 +4029,7 @@
             "type": "loki",
             "uid": "${ds_loki}"
           },
-          "expr": "sum by (host_name) (count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" [$__range]))",
+          "expr": "label_replace(sum by (host_name) (count_over_time({service_name=\"claude-code\"} | host_name=~\"$host\" | event_name=\"api_request\" [$__range])), \"host_name\", \"unnamed\", \"host_name\", \"^$\")",
           "legendFormat": "{{host_name}}",
           "refId": "A",
           "queryType": "instant"
