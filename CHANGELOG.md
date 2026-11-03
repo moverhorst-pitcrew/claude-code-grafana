@@ -30,7 +30,9 @@ the project uses [Semantic Versioning](https://semver.org/). Upgrade notes are i
 
 ### Fixed
 - Requests by host and Cost by host show data without a `host_name` (from before `host.name` was set) as the host
-  "unnamed". Requests by host used to name that bar "Value #A".
+  "unnamed".
+- Requests by host shows a bar per host. Grafana returns a Loki instant query as one table, and the bar gauge reduced it
+  to its last row, so it showed a single bar named "Value #A" (the last host's count).
 - `tools/validate_dashboard.py` now exits non-zero when a query fails; it used to print `FAILED: N` but still exit 0.
 - Credits used no longer hardcodes a euro sign: it sums per currency as reported by the account
   and shows the currency as the tile's name (an account that reports no currency renders as

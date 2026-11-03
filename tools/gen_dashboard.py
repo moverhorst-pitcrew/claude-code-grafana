@@ -151,7 +151,8 @@ def bargauge(title, expr, unit, x, y, w=6, h=7, ds=PROM, desc="", legend="", col
     p = base("bargauge", title, x, y, w, h, ds, targets(ds, [(expr, legend)], instant=True), desc)
     unit, dec = norm(unit)
     bd = {"unit": unit, "color": {"mode": "fixed", "fixedColor": "blue"}, "noValue": "none in this range", "min": 0}
-    if legend:   # name from label values; a single series otherwise loses its name
+    loki = ds is LOKI   # Grafana hands a Loki instant result over as one table (a row per series), not a frame per series
+    if legend and not loki:   # name from label values; a single series otherwise loses its name
         bd["displayName"] = legend.replace("{{", "${__field.labels.").replace("}}", "}")
     if dec is not None:
         bd["decimals"] = dec
@@ -161,7 +162,9 @@ def bargauge(title, expr, unit, x, y, w=6, h=7, ds=PROM, desc="", legend="", col
     p["options"] = {"orientation": "horizontal", "displayMode": "gradient", "showUnfilled": True, "valueMode": "color",
                     "namePlacement": "top", "sizing": "manual", "minVizHeight": 26, "maxVizHeight": 34, "minVizWidth": 8,
                     "text": {"titleSize": 13, "valueSize": 14},
-                    "reduceOptions": {"calcs": ["lastNotNull"], "values": False, "fields": ""}}
+                    # Loki: every row of the table is a bar, named by its label column; a reduce would keep only the last row
+                    "reduceOptions": ({"calcs": [], "values": True, "fields": "/^Value/"} if loki
+                                      else {"calcs": ["lastNotNull"], "values": False, "fields": ""})}
     return p
 
 
