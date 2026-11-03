@@ -29,6 +29,8 @@ the project uses [Semantic Versioning](https://semver.org/). Upgrade notes are i
   `dashboard-smoke` CI job runs it against the live stack.
 
 ### Fixed
+- Requests by host and Cost by host show data without a `host_name` (from before `host.name` was set) as the host
+  "unnamed". Requests by host used to name that bar "Value #A".
 - `tools/validate_dashboard.py` now exits non-zero when a query fails; it used to print `FAILED: N` but still exit 0.
 - Credits used no longer hardcodes a euro sign: it sums per currency as reported by the account
   and shows the currency as the tile's name (an account that reports no currency renders as
