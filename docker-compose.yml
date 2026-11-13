@@ -9,7 +9,7 @@
 services:
   otel-lgtm:
     # Pinned to a tested release; bump the tag, run tools/validate_dashboard.py, and update the README Compatibility line.
-    image: grafana/otel-lgtm:0.39.0
+    image: grafana/otel-lgtm:0.40.0
     container_name: otel-lgtm
     restart: unless-stopped
     ports:
